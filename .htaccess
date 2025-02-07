@@ -1,0 +1,3 @@
+# Bloqueia o acesso direto aos arquivos dentro da pasta /views/
+Options -Indexes
+DirectoryIndex index.php
