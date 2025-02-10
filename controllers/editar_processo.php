@@ -5,6 +5,8 @@ require_once "../config/conexao.php";
 require_once "logs_controller.php"; // Importa a função para registrar logs
 global $pdo;
 
+$perfil = $_SESSION['usuario_perfil'] ?? '';
+
 // Verifica se o usuário está logado
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: ../views/login.php");

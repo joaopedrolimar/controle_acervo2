@@ -67,33 +67,38 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body class="bg-light">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-                <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
-            </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+            <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
+        </a>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
-                    <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
+                <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+
+                <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="cadastro_processo.php">Cadastrar Processos</a></li>
+                <?php endif; ?>
 
-                    <?php if ($perfil === 'administrador'): ?>
-                        <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php">Gerenciar Usuários</a></li>
-                        <li class="nav-item"><a class="nav-link" href="log_atividades.php">Log de Atividades</a></li>
-                    <?php endif; ?>
+                <?php if ($perfil === 'administrador'): ?>
+                    <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php">Gerenciar Usuários</a></li>
+                    <li class="nav-item"><a class="nav-link" href="log_atividades.php">Log de Atividades</a></li>
+                <?php endif; ?>
 
-                    <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
-                </ul>
-            </div>
+                <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <!-- Conteúdo -->
     <div class="container mt-4">
@@ -152,7 +157,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?= htmlspecialchars($processo['status']) ?></td>
                         <td>
                             <?php if ($perfil !== 'consultor'): ?>
-                                <a href="editar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-warning btn-sm">Editar</a>
+                                <a href="../controllers/editar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-warning btn-sm">Editar</a>
                                 <a href="../controllers/deletar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm"
                                    onclick="return confirm('Tem certeza que deseja excluir?');">Excluir</a>
                             <?php endif; ?>

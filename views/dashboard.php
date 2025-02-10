@@ -12,6 +12,9 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Obtém o nome do usuário logado
 $nome_usuario = $_SESSION['usuario_nome'];
+// Obtém o perfil do usuário logado
+$perfil = $_SESSION['usuario_perfil'] ?? '';
+
 
 // Consultas para estatísticas
 $total_processos = $pdo->query("SELECT COUNT(*) FROM processos")->fetchColumn();
@@ -29,10 +32,14 @@ $finalizados_por_mes = $pdo->query("SELECT MONTH(data_inicio) as mes, COUNT(*) a
 
 // Calcula o tempo de duração dos processos finalizados
 $tempo_processos = $pdo->query("
-    SELECT numero, DATEDIFF(MAX(data_inicio), MIN(data_inicio)) as dias
-    FROM processos 
-    WHERE status = 'Finalizado'
-    GROUP BY numero
+    SELECT p.numero, 
+           DATEDIFF(l.data_hora, p.data_inicio) AS dias
+    FROM processos p
+    JOIN logs l ON l.registro_id = p.id 
+    WHERE p.status = 'Finalizado' 
+      AND l.acao = 'Editou um processo' 
+      AND JSON_UNQUOTE(JSON_EXTRACT(l.valores_novos, '$.status')) = 'Finalizado'
+      AND l.data_hora >= p.data_inicio
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 
@@ -51,39 +58,37 @@ $tempo_processos = $pdo->query("
 </head>
 
 <body class="bg-light">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <!-- LOGO -->
-            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-                <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
-            </a>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+            <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
+        </a>
 
-            <!-- Botão para mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <!-- Itens do menu -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
-                    <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
+                <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+
+                <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="cadastro_processo.php">Cadastrar Processos</a></li>
+                <?php endif; ?>
 
-
-
-                    <?php if ($_SESSION['usuario_perfil'] === 'administrador'): ?>
+                <?php if ($perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php">Gerenciar Usuários</a></li>
                     <li class="nav-item"><a class="nav-link" href="log_atividades.php">Log de Atividades</a></li>
                 <?php endif; ?>
 
-                    <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
-                </ul>
-            </div>
+                <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <!-- Conteúdo Principal -->
     <div class="container mt-4">

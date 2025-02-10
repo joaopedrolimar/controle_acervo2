@@ -3,6 +3,8 @@ session_start();
 require_once "../config/conexao.php";
 global $pdo;
 
+$perfil = $_SESSION['usuario_perfil'] ?? '';
+
 // Verifica se o usuário está logado e se é administrador
 if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'administrador') {
     $_SESSION['mensagem'] = "Acesso negado!";
@@ -35,27 +37,37 @@ $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body class="bg-light">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-                <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
-                    <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+            <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
+                <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+
+                <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="cadastro_processo.php">Cadastrar Processos</a></li>
+                <?php endif; ?>
+
+                <?php if ($perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php">Gerenciar Usuários</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="log_atividades.php">Log de Atividades</a></li>
-                    <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
-                </ul>
-            </div>
+                    <li class="nav-item"><a class="nav-link" href="log_atividades.php">Log de Atividades</a></li>
+                <?php endif; ?>
+
+                <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <!-- Conteúdo -->
     <div class="container mt-4">

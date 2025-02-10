@@ -15,6 +15,8 @@ $sql = "SELECT * FROM usuarios";
 $stmt = $pdo->prepare($sql);
 $stmt->execute();
 $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$perfil = $_SESSION['usuario_perfil'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -32,24 +34,24 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <!-- LOGO -->
         <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
             <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
         </a>
 
-        <!-- Botão para mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Itens do menu -->
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
                 <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
-                <li class="nav-item"><a class="nav-link" href="cadastro_processo.php">Cadastrar Processos</a></li>
 
-                <?php if ($_SESSION['usuario_perfil'] === 'administrador'): ?>
+                <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
+                    <li class="nav-item"><a class="nav-link" href="cadastro_processo.php">Cadastrar Processos</a></li>
+                <?php endif; ?>
+
+                <?php if ($perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php">Gerenciar Usuários</a></li>
                     <li class="nav-item"><a class="nav-link" href="log_atividades.php">Log de Atividades</a></li>
                 <?php endif; ?>
@@ -59,6 +61,7 @@ $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </nav>
+
 
 
     <div class="container mt-5">
