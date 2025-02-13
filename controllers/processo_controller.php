@@ -8,11 +8,20 @@ global $pdo;
 // Verifica se o formulário foi enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
     $numero = trim($_POST['numero']);
-    $tipo = trim($_POST['tipo']);
-    $data_inicio = $_POST['data_inicio'];
+    $natureza = trim($_POST['natureza']);
+    $outra_natureza = isset($_POST['outra_natureza']) ? trim($_POST['outra_natureza']) : null;
+    $data_denuncia = $_POST['data_denuncia'];
     $crime = trim($_POST['crime']);
+    $outro_crime = isset($_POST['outro_crime']) ? trim($_POST['outro_crime']) : null;
     $denunciado = trim($_POST['denunciado']);
-    $status = $_POST['status'];
+    $vitima = isset($_POST['vitima']) ? trim($_POST['vitima']) : null;
+    $local_municipio = trim($_POST['municipio']);
+    $local_bairro = trim($_POST['bairro']);
+    $sentenca = trim($_POST['sentenca']);
+    $outra_sentenca = isset($_POST['outra_sentenca']) ? trim($_POST['outra_sentenca']) : null;
+    $data_sentenca = isset($_POST['data_sentenca']) ? $_POST['data_sentenca'] : null;
+    $recursos = trim($_POST['recursos']);
+    $status = "Cadastrado"; // Sempre começa com status "Cadastrado"
     $usuario_id = $_SESSION['usuario_id']; // ID do usuário logado
 
     try {
@@ -29,14 +38,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
         }
 
         // Insere no banco de dados
-        $sql = "INSERT INTO processos (numero, tipo, data_inicio, crime, denunciado, status, usuario_id) 
-                VALUES (:numero, :tipo, :data_inicio, :crime, :denunciado, :status, :usuario_id)";
+        $sql = "INSERT INTO processos (numero, natureza, outra_natureza, data_denuncia, crime, outro_crime, denunciado, vitima, 
+                                       local_municipio, local_bairro, sentenca, outra_sentenca, data_sentenca, recursos, status, usuario_id) 
+                VALUES (:numero, :natureza, :outra_natureza, :data_denuncia, :crime, :outro_crime, :denunciado, :vitima, 
+                        :local_municipio, :local_bairro, :sentenca, :outra_sentenca, :data_sentenca, :recursos, :status, :usuario_id)";
+        
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':numero', $numero, PDO::PARAM_STR);
-        $stmt->bindParam(':tipo', $tipo, PDO::PARAM_STR);
-        $stmt->bindParam(':data_inicio', $data_inicio, PDO::PARAM_STR);
+        $stmt->bindParam(':natureza', $natureza, PDO::PARAM_STR);
+        $stmt->bindParam(':outra_natureza', $outra_natureza, PDO::PARAM_STR);
+        $stmt->bindParam(':data_denuncia', $data_denuncia, PDO::PARAM_STR);
         $stmt->bindParam(':crime', $crime, PDO::PARAM_STR);
+        $stmt->bindParam(':outro_crime', $outro_crime, PDO::PARAM_STR);
         $stmt->bindParam(':denunciado', $denunciado, PDO::PARAM_STR);
+        $stmt->bindParam(':vitima', $vitima, PDO::PARAM_STR);
+        $stmt->bindParam(':local_municipio', $local_municipio, PDO::PARAM_STR);
+        $stmt->bindParam(':local_bairro', $local_bairro, PDO::PARAM_STR);
+        $stmt->bindParam(':sentenca', $sentenca, PDO::PARAM_STR);
+        $stmt->bindParam(':outra_sentenca', $outra_sentenca, PDO::PARAM_STR);
+        $stmt->bindParam(':data_sentenca', $data_sentenca, PDO::PARAM_STR);
+        $stmt->bindParam(':recursos', $recursos, PDO::PARAM_STR);
         $stmt->bindParam(':status', $status, PDO::PARAM_STR);
         $stmt->bindParam(':usuario_id', $usuario_id, PDO::PARAM_INT);
 
@@ -45,7 +66,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
 
             // Registra a ação no log
             registrar_log($usuario_id, "Cadastrou um novo processo", "processos", $registro_id, null, json_encode([
-                'numero' => $numero, 'tipo' => $tipo, 'data_inicio' => $data_inicio, 'crime' => $crime, 'denunciado' => $denunciado, 'status' => $status
+                'numero' => $numero, 
+                'natureza' => $natureza,
+                'outra_natureza' => $outra_natureza,
+                'data_denuncia' => $data_denuncia, 
+                'crime' => $crime, 
+                'outro_crime' => $outro_crime,
+                'denunciado' => $denunciado, 
+                'vitima' => $vitima,
+                'local_municipio' => $local_municipio,
+                'local_bairro' => $local_bairro,
+                'sentenca' => $sentenca,
+                'outra_sentenca' => $outra_sentenca,
+                'data_sentenca' => $data_sentenca,
+                'recursos' => $recursos,
+                'status' => $status
             ]));
 
             $_SESSION['mensagem'] = "Processo cadastrado com sucesso!";

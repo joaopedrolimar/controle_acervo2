@@ -32,7 +32,7 @@ $perfil = $_SESSION['usuario_perfil'] ?? '';
 <body class="bg-light">
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
             <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
