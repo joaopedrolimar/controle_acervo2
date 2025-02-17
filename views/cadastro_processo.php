@@ -12,12 +12,15 @@ if (!isset($_SESSION['usuario_id'])) {
 
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 
-// Lista de bairros organizados por município
-$bairrosPorMunicipio = [
-    "Manaus" => ["Centro", "Adrianópolis", "Cidade Nova", "Aleixo"],
-    "Itacoatiara" => ["Centro", "Jauari", "Mamoud Amed"],
-    "Parintins" => ["Centro", "Itaúna", "Francesa"],
-];
+// Buscar municípios do banco
+$municipios = $pdo->query("SELECT * FROM municipios ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Buscar bairros e associar com os municípios
+$bairros = $pdo->query("SELECT bairros.id, bairros.nome, bairros.municipio_id, municipios.nome as municipio 
+                         FROM bairros 
+                         JOIN municipios ON bairros.municipio_id = municipios.id 
+                         ORDER BY municipios.nome ASC, bairros.nome ASC")
+               ->fetchAll(PDO::FETCH_ASSOC);
 
 // Busca os crimes do banco de dados
 try {
@@ -71,23 +74,7 @@ try {
             }
         }
 
-        function carregarBairros() {
-            let municipio = document.getElementById("municipio").value;
-            let bairroSelect = document.getElementById("bairro");
 
-            bairroSelect.innerHTML = "<option value=''>Selecione um Bairro</option>";
-
-            let bairrosPorMunicipio = <?= json_encode($bairrosPorMunicipio) ?>;
-
-            if (municipio in bairrosPorMunicipio) {
-                bairrosPorMunicipio[municipio].forEach(function(bairro) {
-                    let option = document.createElement("option");
-                    option.value = bairro;
-                    option.textContent = bairro;
-                    bairroSelect.appendChild(option);
-                });
-            }
-        }
 
   
     </script>
@@ -179,21 +166,51 @@ try {
                             </select>
                         </div>
 
+<!-- Seleção de Município -->
+<div class="mb-3">
+    <label class="form-label">Município</label>
+    <select class="form-control mt-2" id="municipio" name="municipio" required>
+        <option value="">Selecione um Município</option>
+        <?php foreach ($municipios as $municipio): ?>
+            <option value="<?= $municipio['id'] ?>"><?= htmlspecialchars($municipio['nome']) ?></option>
+        <?php endforeach; ?>
+    </select>
+</div>
 
-                        <!--Local do crime-->
-                        <div class="mb-3">
-                            <label class="form-label">Local do Crime</label>
-                            <select class="form-control mt-2" id="municipio" name="municipio" onchange="carregarBairros()">
-                                <option value="">Selecione um Município</option>
-                                <option value="Manaus">Manaus</option>
-                                <option value="Itacoatiara">Itacoatiara</option>
-                                <option value="Parintins">Parintins</option>
-                            </select>
+<!-- Seleção de Bairro -->
+<div class="mb-3">
+    <label class="form-label">Bairro</label>
+    <select class="form-control mt-2" id="bairro" name="bairro" required>
+        <option value="">Selecione um Bairro</option>
+        <?php foreach ($bairros as $bairro): ?>
+            <option value="<?= $bairro['id'] ?>" data-municipio="<?= $bairro['municipio_id'] ?>">
+                <?= htmlspecialchars($bairro['nome']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</div>
 
-                            <select class="form-control mt-2" id="bairro" name="bairro">
-                                <option value="">Selecione um Bairro</option>
-                            </select>
-                        </div>
+<script>
+document.getElementById("municipio").addEventListener("change", function() {
+    let municipioSelecionado = this.value;
+    let bairroSelect = document.getElementById("bairro");
+
+    // Limpa a seleção anterior
+    bairroSelect.innerHTML = '<option value="">Selecione um Bairro</option>';
+
+    // Filtra os bairros pelo município selecionado
+    <?php foreach ($bairros as $bairro): ?>
+        if ("<?= $bairro['municipio_id'] ?>" === municipioSelecionado) {
+            let option = document.createElement("option");
+            option.value = "<?= $bairro['id'] ?>";
+            option.textContent = "<?= htmlspecialchars($bairro['nome']) ?>";
+            bairroSelect.appendChild(option);
+        }
+    <?php endforeach; ?>
+});
+
+</script>
+
 
 
                         <!--Denunciado-->
@@ -231,6 +248,14 @@ try {
                                 <option value="Não há">Não há</option>
                             </select>
                         </div>
+
+                        <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-control" id="status" name="status" required>
+                                    <option value="Cadastrado">Cadastrado</option>
+                                    <option value="Finalizado">Finalizado</option>
+                                </select>
+                            </div>
 
                         
 

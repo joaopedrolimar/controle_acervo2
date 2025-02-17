@@ -11,8 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
     $natureza = trim($_POST['natureza']);
     $outra_natureza = isset($_POST['outra_natureza']) ? trim($_POST['outra_natureza']) : null;
     $data_denuncia = $_POST['data_denuncia'];
-    $crime = trim($_POST['crime']);
-    $outro_crime = isset($_POST['outro_crime']) ? trim($_POST['outro_crime']) : null;
+    $crime_id = intval($_POST['crime']); // Agora usamos o ID do crime
     $denunciado = trim($_POST['denunciado']);
     $vitima = isset($_POST['vitima']) ? trim($_POST['vitima']) : null;
     $local_municipio = trim($_POST['municipio']);
@@ -37,10 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
             exit();
         }
 
-        // Insere no banco de dados
-        $sql = "INSERT INTO processos (numero, natureza, outra_natureza, data_denuncia, crime, outro_crime, denunciado, vitima, 
+        // Insere no banco de dados com crime_id
+        $sql = "INSERT INTO processos (numero, natureza, outra_natureza, data_denuncia, crime_id, denunciado, vitima, 
                                        local_municipio, local_bairro, sentenca, outra_sentenca, data_sentenca, recursos, status, usuario_id) 
-                VALUES (:numero, :natureza, :outra_natureza, :data_denuncia, :crime, :outro_crime, :denunciado, :vitima, 
+                VALUES (:numero, :natureza, :outra_natureza, :data_denuncia, :crime_id, :denunciado, :vitima, 
                         :local_municipio, :local_bairro, :sentenca, :outra_sentenca, :data_sentenca, :recursos, :status, :usuario_id)";
         
         $stmt = $pdo->prepare($sql);
@@ -48,8 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
         $stmt->bindParam(':natureza', $natureza, PDO::PARAM_STR);
         $stmt->bindParam(':outra_natureza', $outra_natureza, PDO::PARAM_STR);
         $stmt->bindParam(':data_denuncia', $data_denuncia, PDO::PARAM_STR);
-        $stmt->bindParam(':crime', $crime, PDO::PARAM_STR);
-        $stmt->bindParam(':outro_crime', $outro_crime, PDO::PARAM_STR);
+        $stmt->bindParam(':crime_id', $crime_id, PDO::PARAM_INT); // Agora usamos crime_id
         $stmt->bindParam(':denunciado', $denunciado, PDO::PARAM_STR);
         $stmt->bindParam(':vitima', $vitima, PDO::PARAM_STR);
         $stmt->bindParam(':local_municipio', $local_municipio, PDO::PARAM_STR);
@@ -70,8 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
                 'natureza' => $natureza,
                 'outra_natureza' => $outra_natureza,
                 'data_denuncia' => $data_denuncia, 
-                'crime' => $crime, 
-                'outro_crime' => $outro_crime,
+                'crime_id' => $crime_id, 
                 'denunciado' => $denunciado, 
                 'vitima' => $vitima,
                 'local_municipio' => $local_municipio,
