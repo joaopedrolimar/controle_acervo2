@@ -1,5 +1,10 @@
 <!--/controllers/editar_processo.php-->
 <?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once "../config/conexao.php";
 require_once "logs_controller.php"; // Importa função de logs
@@ -7,12 +12,7 @@ global $pdo;
 
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 
-// Lista de bairros organizados por município
-$bairrosPorMunicipio = [
-    "Manaus" => ["Centro", "Adrianópolis", "Cidade Nova", "Aleixo"],
-    "Itacoatiara" => ["Centro", "Jauari", "Mamoud Amed"],
-    "Parintins" => ["Centro", "Itaúna", "Francesa"],
-];
+
 
 // Verifica se o usuário está logado
 if (!isset($_SESSION['usuario_id'])) {
@@ -25,11 +25,41 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id = $_GET['id'];
 
     try {
-        // Busca os dados do processo
-        $stmt = $pdo->prepare("SELECT * FROM processos WHERE id = :id");
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-        $processo = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Buscar todos os crimes disponíveis
+        $stmt_crimes = $pdo->prepare("SELECT id, nome FROM crimes");
+        $stmt_crimes->execute();
+        $crimes = $stmt_crimes->fetchAll(PDO::FETCH_ASSOC);
+
+        // Buscar todos os municípios disponíveis
+        $stmt_municipios = $pdo->prepare("SELECT id, nome FROM municipios");
+        $stmt_municipios->execute();
+        $municipios = $stmt_municipios->fetchAll(PDO::FETCH_ASSOC);
+
+        // Buscar todos os bairros disponíveis
+        $stmt_bairros = $pdo->prepare("SELECT id, nome, municipio_id FROM bairros");
+        $stmt_bairros->execute();
+        $bairros = $stmt_bairros->fetchAll(PDO::FETCH_ASSOC);
+
+        // Criar um array associativo de bairros agrupados por município
+        $bairrosPorMunicipio = [];
+        foreach ($bairros as $bairro) {
+            $bairrosPorMunicipio[$bairro['municipio_id']][] = [
+                'id' => $bairro['id'],
+                'nome' => $bairro['nome']
+            ];
+        }
+
+// Buscar os dados do processo com JOIN para pegar corretamente o crime associado
+$stmt = $pdo->prepare("
+    SELECT processos.*, crimes.id AS crime_id, crimes.nome AS nome_crime
+    FROM processos 
+    LEFT JOIN crimes ON processos.crime_id = crimes.id
+    WHERE processos.id = :id
+");
+$stmt->bindParam(':id', $id, PDO::PARAM_INT);
+$stmt->execute();
+$processo = $stmt->fetch(PDO::FETCH_ASSOC);
+
 
         if (!$processo) {
             $_SESSION['mensagem'] = "Processo não encontrado.";
@@ -47,21 +77,28 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     exit();
 }
 
-// Se o formulário for enviado para salvar as alterações
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
     $numero = trim($_POST['numero']);
     $natureza = trim($_POST['natureza']);
-    $outra_natureza = $_POST['outra_natureza'] ?? null;
+    $outra_natureza = !empty($_POST['outra_natureza']) ? $_POST['outra_natureza'] : null;
     $data_denuncia = $_POST['data_denuncia'];
-    $crime = trim($_POST['crime']);
-    $outro_crime = $_POST['outro_crime'] ?? null;
+    
+    // Pegando o crime_id corretamente
+    $crime_id = $_POST['crime'] !== "Outro" ? intval($_POST['crime']) : null;
+    $outro_crime = !empty($_POST['outro_crime']) ? $_POST['outro_crime'] : null;
+
     $denunciado = trim($_POST['denunciado']);
-    $vitima = $_POST['vitima'] ?? null;
-    $local_municipio = $_POST['local_municipio'] ?? null;
-    $local_bairro = $_POST['local_bairro'] ?? null;
+    $vitima = !empty($_POST['vitima']) ? $_POST['vitima'] : null;
+
+    // Pegando o municipio_id e bairro_id corretamente
+    $municipio_id = isset($_POST['local_municipio']) && is_numeric($_POST['local_municipio']) ? intval($_POST['local_municipio']) : null;
+    $bairro_id = isset($_POST['local_bairro']) && is_numeric($_POST['local_bairro']) ? intval($_POST['local_bairro']) : null;
+
+    // Sentença
     $sentenca = trim($_POST['sentenca']);
-    $outra_sentenca = $_POST['outra_sentenca'] ?? null;
-    $data_sentenca = $_POST['data_sentenca'] ?? null;
+    $outra_sentenca = !empty($_POST['outra_sentenca']) ? $_POST['outra_sentenca'] : null;
+    $data_sentenca = !empty($_POST['data_sentenca']) ? $_POST['data_sentenca'] : null;
+
     $recursos = trim($_POST['recursos']);
     $status = $_POST['status'];
 
@@ -72,30 +109,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                 natureza = :natureza,
                 outra_natureza = :outra_natureza,
                 data_denuncia = :data_denuncia, 
-                crime = :crime, 
+                crime_id = :crime_id, 
                 outro_crime = :outro_crime,
                 denunciado = :denunciado, 
                 vitima = :vitima,
-                local_municipio = :local_municipio,
-                local_bairro = :local_bairro,
+                municipio_id = :municipio_id,
+                bairro_id = :bairro_id,
                 sentenca = :sentenca,
                 outra_sentenca = :outra_sentenca,
                 data_sentenca = :data_sentenca,
                 recursos = :recursos,
                 status = :status
                 WHERE id = :id";
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':numero', $numero);
         $stmt->bindParam(':natureza', $natureza);
         $stmt->bindParam(':outra_natureza', $outra_natureza);
         $stmt->bindParam(':data_denuncia', $data_denuncia);
-        $stmt->bindParam(':crime', $crime);
+        $stmt->bindParam(':crime_id', $crime_id, PDO::PARAM_INT);
         $stmt->bindParam(':outro_crime', $outro_crime);
         $stmt->bindParam(':denunciado', $denunciado);
         $stmt->bindParam(':vitima', $vitima);
-        $stmt->bindParam(':local_municipio', $local_municipio);
-        $stmt->bindParam(':local_bairro', $local_bairro);
+        $stmt->bindParam(':municipio_id', $municipio_id, PDO::PARAM_INT);
+        $stmt->bindParam(':bairro_id', $bairro_id, PDO::PARAM_INT);
         $stmt->bindParam(':sentenca', $sentenca);
         $stmt->bindParam(':outra_sentenca', $outra_sentenca);
         $stmt->bindParam(':data_sentenca', $data_sentenca);
@@ -115,6 +152,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
     header("Location: ../views/listar_processos.php");
     exit();
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -139,6 +178,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
             outroCrimeInput.style.display = (crimeSelect.value === "Outro") ? "block" : "none";
         }
 
+        // Ativar ao carregar a página para mostrar corretamente se o campo "Outro Crime" deve estar visível
+        document.addEventListener("DOMContentLoaded", function () {
+            toggleOutroCrime();
+        });
+
+
         // Função para mostrar/esconder o campo de sentença e data da sentença
         function toggleSentenca() {
             let select = document.getElementById("sentenca");
@@ -157,30 +202,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
             }
         }
 
-        function carregarBairros() {
-            let municipio = document.getElementById("municipio").value;
-            let bairroSelect = document.getElementById("bairro");
-            bairroSelect.innerHTML = ""; // Limpa opções antes de carregar novas
+        let bairrosPorMunicipio = <?= json_encode($bairrosPorMunicipio) ?>;
 
-            let bairrosPorMunicipio = <?= json_encode($bairrosPorMunicipio) ?>;
+function carregarBairros() {
+    let municipioSelect = document.getElementById("municipio");
+    let bairroSelect = document.getElementById("bairro");
+    let municipioSelecionado = municipioSelect.value;
 
-            if (municipio in bairrosPorMunicipio) {
-                bairrosPorMunicipio[municipio].forEach(function(bairro) {
-                    let option = document.createElement("option");
-                    option.value = bairro;
-                    option.textContent = bairro;
-                    if (bairro === "<?= htmlspecialchars($processo['local_bairro']) ?>") {
-                        option.selected = true; // Mantém o bairro selecionado
-                    }
-                    bairroSelect.appendChild(option);
-                });
+    bairroSelect.innerHTML = '<option value="">Selecione um bairro</option>';
+
+    if (bairrosPorMunicipio[municipioSelecionado]) {
+        bairrosPorMunicipio[municipioSelecionado].forEach(bairro => {
+            let option = document.createElement("option");
+            option.value = bairro.id;
+            option.textContent = bairro.nome;
+
+            // Se for o bairro salvo no processo, ele já vem selecionado
+            if (bairro.id == <?= json_encode($processo['bairro_id']) ?>) {
+                option.selected = true;
             }
-        }
 
-        // Carregar bairros automaticamente ao abrir a página
-        document.addEventListener("DOMContentLoaded", function() {
-            carregarBairros();
+            bairroSelect.appendChild(option);
         });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    carregarBairros();
+});
+
     </script>
 </head>
 
@@ -224,31 +274,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                             <div class="mb-3">
     <label for="crime" class="form-label">Crime</label>
     <select class="form-control" id="crime" name="crime" onchange="toggleOutroCrime()" required>
-        <option value="Furto" <?= $processo['crime'] == "Furto" ? "selected" : "" ?>>Furto</option>
-        <option value="Roubo" <?= $processo['crime'] == "Roubo" ? "selected" : "" ?>>Roubo</option>
-        <option value="Latrocínio" <?= $processo['crime'] == "Latrocínio" ? "selected" : "" ?>>Latrocínio</option>
-        <option value="Receptação" <?= $processo['crime'] == "Receptação" ? "selected" : "" ?>>Receptação</option>
-        <option value="Homicídio" <?= $processo['crime'] == "Homicídio" ? "selected" : "" ?>>Homicídio</option>
-        <option value="Outro" <?= !empty($processo['outro_crime']) ? "selected" : "" ?>>Outro Crime</option>
+        <?php foreach ($crimes as $crime): ?>
+            <option value="<?= $crime['id'] ?>" <?= ($crime['id'] == $processo['crime_id']) ? "selected" : "" ?>>
+                <?= htmlspecialchars($crime['nome']) ?>
+            </option>
+        <?php endforeach; ?>
+        <option value="Outro">Outro Crime</option>
     </select>
-    <input type="text" class="form-control mt-2" id="outroCrime" name="outro_crime" placeholder="Especifique o crime..."
-        value="<?= htmlspecialchars($processo['outro_crime'] ?? '') ?>" 
-        style="<?= empty($processo['outro_crime']) ? 'display:none;' : '' ?>">
-</div> 
 
+    <!-- Campo para outro crime, aparece apenas se 'Outro' for selecionado -->
+    <input type="text" class="form-control mt-2" id="outroCrime" name="outro_crime" 
+           placeholder="Especifique o crime..." 
+           value="<?= htmlspecialchars($processo['outro_crime'] ?? '') ?>" 
+           style="<?= empty($processo['outro_crime']) ? 'display:none;' : '' ?>">
+</div>
 
 
 
                             <!-- Local do Crime -->
                             <div class="mb-3">
-                                <label class="form-label">Local do Crime</label>
-                                <select class="form-control mt-2" id="municipio" name="local_municipio" onchange="carregarBairros()" required>
-                                    <?php foreach ($bairrosPorMunicipio as $municipio => $bairros): ?>
-                                        <option value="<?= $municipio ?>" <?= ($processo['local_municipio'] == $municipio) ? "selected" : "" ?>><?= $municipio ?></option>
+                                <label for="municipio" class="form-label">Município</label>
+                                <select class="form-control" id="municipio" name="local_municipio" onchange="carregarBairros()" required>
+                                    <option value="">Selecione um município</option>
+                                    <?php foreach ($municipios as $municipio): ?>
+                                        <option value="<?= $municipio['id'] ?>" <?= ($municipio['id'] == $processo['municipio_id']) ? "selected" : "" ?>>
+                                            <?= htmlspecialchars($municipio['nome']) ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <select class="form-control mt-2" id="bairro" name="local_bairro" required>
-                                    <option value="<?= htmlspecialchars($processo['local_bairro']) ?>" selected><?= htmlspecialchars($processo['local_bairro']) ?></option>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="bairro" class="form-label">Bairro</label>
+                                <select class="form-control" id="bairro" name="local_bairro" required>
+                                    <option value="">Selecione um bairro</option>
                                 </select>
                             </div>
 

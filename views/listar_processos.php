@@ -257,14 +257,16 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="col-md-3"><input type="text" name="id_filter" class="form-control" placeholder="ID"></div>
             <div class="col-md-3"><input type="date" name="date_filter" class="form-control"></div>
 
-            <div class="col-md-3">
-                <label for="data_fato_inicio" class="form-label">📅 Data Fato - Início</label>
-                <input type="date" name="data_fato_inicio" class="form-control" value="<?= htmlspecialchars($_GET['data_fato_inicio'] ?? '') ?>">
+            <div class="col-md-3 form-floating">
+                <input type="date" name="data_fato_inicio" class="form-control" id="data_fato_inicio" 
+                    value="<?= htmlspecialchars($_GET['data_fato_inicio'] ?? '') ?>">
+                <label for="data_fato_inicio">📅 Data Fato - Início</label>
             </div>
 
-            <div class="col-md-3">
-                <label for="data_fato_fim" class="form-label">📅 Data Fato - Fim</label>
-                <input type="date" name="data_fato_fim" class="form-control" value="<?= htmlspecialchars($_GET['data_fato_fim'] ?? '') ?>">
+            <div class="col-md-3 form-floating">
+                <input type="date" name="data_fato_fim" class="form-control" id="data_fato_fim" 
+                    value="<?= htmlspecialchars($_GET['data_fato_fim'] ?? '') ?>">
+                <label for="data_fato_fim">📅 Data Fato - Fim</label>
             </div>
 
             <div class="col-md-3"><input type="text" name="municipio_filter" class="form-control" placeholder="Município"></div>
