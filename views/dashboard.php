@@ -15,9 +15,7 @@ $nome_usuario = $_SESSION['usuario_nome'];
 // Obtém o perfil do usuário logado
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 
-
-
-
+$pagina_atual = basename($_SERVER['PHP_SELF']);
 ?>
 
 <!DOCTYPE html>
@@ -29,15 +27,40 @@ $perfil = $_SESSION['usuario_perfil'] ?? '';
     <title>Dashboard</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+    /* Ajuste da logo na navbar */
+    .logo-navbar {
+    max-width: 300px; /* Define um tamanho máximo */
+    height: auto; /* Mantém a proporção correta */
+    }
+
+    /* Ajuste para telas menores */
+    @media (max-width: 576px) {
+        .logo-navbar {
+            max-width: 250px; /* Reduz a logo para melhor encaixe */
+            display: block; /* Evita que fique desalinhada */
+            margin: auto; /* Centraliza no mobile */
+        }
+    }
+
+
+    </style>
+
 </head>
 
 <body class="bg-light">
+
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
+    
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-            <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
+        <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -46,26 +69,62 @@ $perfil = $_SESSION['usuario_perfil'] ?? '';
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="dashboard.php">Início</a></li>
-                <li class="nav-item"><a class="nav-link" href="listar_processos.php">Listar Processos</a></li>
+
+                <li class="nav-item">
+                    <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>" href="dashboard.php">
+                        <i class="fas fa-home"></i> Início
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php"><i class="fas fa-list">
+                    </i> Listar Processos</a>
+                </li>
 
                 <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
-                    <li class="nav-item"><a class="nav-link" href="cadastro_processo.php">Cadastrar Processos</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>" href="cadastro_processo.php">
+                        <i class="fas fa-plus"></i> Cadastrar Processos</a>
+                    </li>
                 <?php endif; ?>
 
                 <?php if ($perfil === 'administrador'): ?>
-                    <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php">Gerenciar Usuários</a></li>
-                    <li class="nav-item"><a class="nav-link" href="log_atividades.php">Log de Atividades</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>" href="gerenciar_usuarios.php">
+                            <i class="fas fa-users-cog"></i> Gerenciar Usuários</a>
+                        </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
+                            <i class="fas fa-history">
+                            </i> Log de Atividades</a>
+                        </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>" href="cadastro_basico.php">
+                        <i class="fas fa-address-book">
+                        </i> Cadastro Básico</a>
+                    </li>
                 <?php endif; ?>
 
-                <li class="nav-item"><a class="nav-link" href="../controllers/logout.php">Sair</a></li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="../controllers/logout.php">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Sair
+                    </a>
+                </li>
+
             </ul>
         </div>
     </div>
 </nav>
 
 
-  
+    <div class="container mt-4">
+        <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

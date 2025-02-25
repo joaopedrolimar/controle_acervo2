@@ -1,3 +1,4 @@
+<!--/controle_acervo/controllers/deletar_item.php-->
 <?php
 session_start();
 require_once "../config/conexao.php";
@@ -13,7 +14,7 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['usuario_perfil'] !== 'administ
 // Verifica se os dados foram enviados corretamente
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tipo']) && isset($_POST['id'])) {
     $tipo = $_POST['tipo'];
-    $id = $_POST['id'];
+    $id = intval($_POST['id']); // Converte para inteiro para evitar erros
 
     try {
         if ($tipo === "municipio") {
@@ -21,29 +22,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tipo']) && isset($_POS
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM bairros WHERE municipio_id = :id");
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
-            if ($stmt->fetchColumn() > 0) {
-                $_SESSION['mensagem'] = "Erro: Não é possível excluir o município, pois existem bairros vinculados.";
+            $bairros_vinculados = $stmt->fetchColumn();
+
+            if ($bairros_vinculados > 0) {
+                $_SESSION['mensagem'] = "Erro: Não é possível excluir o município, pois existem $bairros_vinculados bairros vinculados.";
                 header("Location: ../views/cadastro_basico.php");
                 exit();
             }
 
             // Exclui o município
             $stmt = $pdo->prepare("DELETE FROM municipios WHERE id = :id");
+
         } elseif ($tipo === "bairro") {
             $stmt = $pdo->prepare("DELETE FROM bairros WHERE id = :id");
+
         } elseif ($tipo === "crime") {
             // Verifica se existem processos vinculados a esse crime
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM processos WHERE crime = :id");
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM processos WHERE crime_id = :id"); // <-- Certifique-se que a coluna na tabela processos é crime_id
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
-            if ($stmt->fetchColumn() > 0) {
-                $_SESSION['mensagem'] = "Erro: Não é possível excluir o crime, pois existem processos vinculados.";
+            $processos_vinculados = $stmt->fetchColumn();
+
+            if ($processos_vinculados > 0) {
+                $_SESSION['mensagem'] = "Erro: Não é possível excluir o crime, pois existem $processos_vinculados processos vinculados.";
                 header("Location: ../views/cadastro_basico.php");
                 exit();
             }
 
             // Exclui o crime
             $stmt = $pdo->prepare("DELETE FROM crimes WHERE id = :id");
+
         } else {
             $_SESSION['mensagem'] = "Erro: Tipo de exclusão inválido!";
             header("Location: ../views/cadastro_basico.php");

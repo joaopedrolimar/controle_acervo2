@@ -1,4 +1,3 @@
-<!--/controllers/editar_processo.php-->
 <?php
 
 ini_set('display_errors', 1);
@@ -9,10 +8,6 @@ session_start();
 require_once "../config/conexao.php";
 require_once "logs_controller.php"; // Importa função de logs
 global $pdo;
-
-$perfil = $_SESSION['usuario_perfil'] ?? '';
-
-
 
 // Verifica se o usuário está logado
 if (!isset($_SESSION['usuario_id'])) {
@@ -49,17 +44,22 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             ];
         }
 
-// Buscar os dados do processo com JOIN para pegar corretamente o crime associado
-$stmt = $pdo->prepare("
-    SELECT processos.*, crimes.id AS crime_id, crimes.nome AS nome_crime
-    FROM processos 
-    LEFT JOIN crimes ON processos.crime_id = crimes.id
-    WHERE processos.id = :id
-");
-$stmt->bindParam(':id', $id, PDO::PARAM_INT);
-$stmt->execute();
-$processo = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Buscar os dados do processo com JOIN correto
+        $stmt = $pdo->prepare("
+            SELECT processos.*, 
+                   crimes.id AS crime_id, crimes.nome AS nome_crime,
+                   municipios.id AS municipio_id, municipios.nome AS nome_municipio,
+                   bairros.id AS bairro_id, bairros.nome AS nome_bairro
+            FROM processos 
+            LEFT JOIN crimes ON processos.crime_id = crimes.id
+            LEFT JOIN municipios ON processos.local_municipio = municipios.id
+            LEFT JOIN bairros ON processos.local_bairro = bairros.id
+            WHERE processos.id = :id
+        ");
 
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $processo = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$processo) {
             $_SESSION['mensagem'] = "Processo não encontrado.";
@@ -77,28 +77,21 @@ $processo = $stmt->fetch(PDO::FETCH_ASSOC);
     exit();
 }
 
+// Atualizar o processo se o formulário for enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
     $numero = trim($_POST['numero']);
     $natureza = trim($_POST['natureza']);
     $outra_natureza = !empty($_POST['outra_natureza']) ? $_POST['outra_natureza'] : null;
     $data_denuncia = $_POST['data_denuncia'];
-    
-    // Pegando o crime_id corretamente
-    $crime_id = $_POST['crime'] !== "Outro" ? intval($_POST['crime']) : null;
+    $crime_id = ($_POST['crime'] !== "Outro") ? intval($_POST['crime']) : null;
     $outro_crime = !empty($_POST['outro_crime']) ? $_POST['outro_crime'] : null;
-
     $denunciado = trim($_POST['denunciado']);
     $vitima = !empty($_POST['vitima']) ? $_POST['vitima'] : null;
-
-    // Pegando o municipio_id e bairro_id corretamente
-    $municipio_id = isset($_POST['local_municipio']) && is_numeric($_POST['local_municipio']) ? intval($_POST['local_municipio']) : null;
-    $bairro_id = isset($_POST['local_bairro']) && is_numeric($_POST['local_bairro']) ? intval($_POST['local_bairro']) : null;
-
-    // Sentença
+    $municipio_id = !empty($_POST['local_municipio']) ? intval($_POST['local_municipio']) : null;
+    $bairro_id = !empty($_POST['local_bairro']) ? intval($_POST['local_bairro']) : null;
     $sentenca = trim($_POST['sentenca']);
     $outra_sentenca = !empty($_POST['outra_sentenca']) ? $_POST['outra_sentenca'] : null;
     $data_sentenca = !empty($_POST['data_sentenca']) ? $_POST['data_sentenca'] : null;
-
     $recursos = trim($_POST['recursos']);
     $status = $_POST['status'];
 
@@ -113,8 +106,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                 outro_crime = :outro_crime,
                 denunciado = :denunciado, 
                 vitima = :vitima,
-                municipio_id = :municipio_id,
-                bairro_id = :bairro_id,
+                local_municipio = :municipio_id,
+                local_bairro = :bairro_id,
                 sentenca = :sentenca,
                 outra_sentenca = :outra_sentenca,
                 data_sentenca = :data_sentenca,
@@ -204,32 +197,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
 
         let bairrosPorMunicipio = <?= json_encode($bairrosPorMunicipio) ?>;
 
-function carregarBairros() {
-    let municipioSelect = document.getElementById("municipio");
-    let bairroSelect = document.getElementById("bairro");
-    let municipioSelecionado = municipioSelect.value;
 
-    bairroSelect.innerHTML = '<option value="">Selecione um bairro</option>';
+        function carregarBairros() {
+            let municipioSelect = document.getElementById("municipio");
+            let bairroSelect = document.getElementById("bairro");
+            let municipioSelecionado = municipioSelect.value;
+            let bairroSalvo = <?= json_encode($processo['bairro_id'] ?? '') ?>;
 
-    if (bairrosPorMunicipio[municipioSelecionado]) {
-        bairrosPorMunicipio[municipioSelecionado].forEach(bairro => {
-            let option = document.createElement("option");
-            option.value = bairro.id;
-            option.textContent = bairro.nome;
+            bairroSelect.innerHTML = '<option value="">Selecione um bairro</option>';
 
-            // Se for o bairro salvo no processo, ele já vem selecionado
-            if (bairro.id == <?= json_encode($processo['bairro_id']) ?>) {
-                option.selected = true;
+            if (municipioSelecionado && bairrosPorMunicipio.hasOwnProperty(municipioSelecionado)) {
+                bairrosPorMunicipio[municipioSelecionado].forEach(bairro => {
+                    let option = document.createElement("option");
+                    option.value = bairro.id;
+                    option.textContent = bairro.nome;
+
+                    if (bairro.id == bairroSalvo) {
+                        option.selected = true;
+                    }
+
+                    bairroSelect.appendChild(option);
+                });
             }
+        }
 
-            bairroSelect.appendChild(option);
-        });
-    }
-}
-
+// Chama a função no carregamento da página
 document.addEventListener("DOMContentLoaded", function () {
     carregarBairros();
 });
+
 
     </script>
 </head>
@@ -295,13 +291,13 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="mb-3">
                                 <label for="municipio" class="form-label">Município</label>
                                 <select class="form-control" id="municipio" name="local_municipio" onchange="carregarBairros()" required>
-                                    <option value="">Selecione um município</option>
-                                    <?php foreach ($municipios as $municipio): ?>
-                                        <option value="<?= $municipio['id'] ?>" <?= ($municipio['id'] == $processo['municipio_id']) ? "selected" : "" ?>>
-                                            <?= htmlspecialchars($municipio['nome']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <option value="">Selecione um município</option>
+                                <?php foreach ($municipios as $municipio): ?>
+                                    <option value="<?= $municipio['id'] ?>" <?= ($municipio['id'] == ($processo['municipio_id'] ?? '')) ? "selected" : "" ?>>
+                                        <?= htmlspecialchars($municipio['nome']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                             </div>
 
                             <div class="mb-3">

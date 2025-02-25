@@ -35,10 +35,16 @@ $sentenca_filter = $_GET['sentenca_filter'] ?? '';
 $status_filter = $_GET['status_filter'] ?? '';
 
 // Construção da Query SQL dinâmica com PDO
-$sql = "SELECT processos.*, crimes.nome AS nome_crime 
+$sql = "SELECT processos.*, 
+               crimes.nome AS nome_crime, 
+               municipios.nome AS nome_municipio, 
+               bairros.nome AS nome_bairro 
         FROM processos 
         LEFT JOIN crimes ON processos.crime_id = crimes.id
+        LEFT JOIN municipios ON processos.local_municipio = municipios.id
+        LEFT JOIN bairros ON processos.local_bairro = bairros.id
         WHERE 1=1";
+
 
 $params = [];
 
@@ -199,6 +205,33 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     .table-responsive {
         overflow-x: auto;
     }
+
+        /* Ajuste da logo na navbar */
+    .logo-navbar {
+        max-width: 300px; /* Define um tamanho máximo */
+        height: auto; /* Mantém a proporção correta */
+    }
+
+    /* Ajuste para telas menores */
+    @media (max-width: 576px) {
+        .logo-navbar {
+            max-width: 250px; /* Reduz a logo para melhor encaixe */
+            display: block; /* Evita que fique desalinhada */
+            margin: auto; /* Centraliza no mobile */
+        }
+    }
+
+    .btn-action {
+            width: 100px; /* Mantém o tamanho padrão */
+            text-align: center; /* Centraliza o conteúdo */
+            display: inline-flex; /* Mantém alinhamento entre ícone e texto */
+            align-items: center; /* Centraliza verticalmente */
+            justify-content: center; /* Centraliza horizontalmente */
+            white-space: nowrap; /* Impede que o texto quebre */
+            margin: 3px; /* Adiciona um espaçamento entre os botões */
+        }
+
+ 
     </style>
 </head>
 
@@ -207,8 +240,9 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
     <div class="container">
+
         <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-            <img src="../public/img/logoPGJ.png" alt="Logo" width="180" height="80" class="me-2">
+        <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -226,7 +260,18 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <?php if ($perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php"><i class="fas fa-users-cog"></i> Gerenciar Usuários</a></li>
-                    <li class="nav-item"><a class="nav-link" href="log_atividades.php"><i class="fas fa-history"></i> Log de Atividades</a></li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="log_atividades.php">
+                            <i class="fas fa-history">
+                            </i> Log de Atividades</a>
+                        </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="cadastro_basico.php">
+                        <i class="fas fa-address-book">
+                        </i> Cadastro Básico</a>
+                    </li>
                 <?php endif; ?>
 
                 <li class="nav-item"><a class="nav-link text-white" href="../controllers/logout.php"><i class="fas fa-sign-out-alt"></i> Sair</a></li>
@@ -308,24 +353,29 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <td><?= htmlspecialchars($processo['denunciado'] ?? 'Não informado') ?></td>
         <td><?= htmlspecialchars($processo['vitima'] ?? 'Não há') ?></td>
-        <td><?= htmlspecialchars(($processo['local_municipio'] ?? 'Não informado') . ' - ' . ($processo['local_bairro'] ?? 'Não informado')) ?></td>
+        <td><?= htmlspecialchars(($processo['nome_municipio'] ?? 'Não informado') . ' - ' . ($processo['nome_bairro'] ?? 'Não informado')) ?></td>
+
         <td><?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></td>
         <td><?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></td>
         <td><?= htmlspecialchars($processo['status'] ?? 'Não informado') ?></td>
         <td>
-            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modal<?= $processo['id'] ?>">
+            <button class="btn btn-info btn-sm btn-action" data-bs-toggle="modal" data-bs-target="#modal<?= $processo['id'] ?>">
                 <i class="fas fa-eye"></i> Exibir
             </button>
 
             <?php if ($perfil !== 'consultor'): ?>
-                <a href="../controllers/editar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-warning btn-sm">
+                <a href="../controllers/editar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-warning btn-sm btn-action">
                     <i class="fas fa-edit"></i> Editar
                 </a>
-                <a href="../controllers/deletar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm"
+                <a href="../controllers/deletar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm btn-action"
                    onclick="return confirm('Tem certeza que deseja excluir?');">
                     <i class="fas fa-trash"></i> Excluir
                 </a>
             <?php endif; ?>
+
+                <a href="../controllers/gerar_pdf.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm btn-action">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
         </td>
     </tr>
 
