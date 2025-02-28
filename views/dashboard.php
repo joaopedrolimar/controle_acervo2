@@ -86,6 +86,10 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                         <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>" href="cadastro_processo.php">
                         <i class="fas fa-plus"></i> Cadastrar Processos</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
+                        <i class="fas fa-plus"></i> ANPP</a>
+                    </li>
                 <?php endif; ?>
 
                 <?php if ($perfil === 'administrador'): ?>
