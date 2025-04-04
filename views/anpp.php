@@ -1,9 +1,11 @@
 <!--/controle_acervo/views/anpp.php-->
-
 <?php
 session_start();
 require_once "../config/conexao.php";
 global $pdo;
+
+$perfil = $_SESSION['usuario_perfil'] ?? '';
+$pagina_atual = basename($_SERVER['PHP_SELF']);
 
 // Verifica se o usuário está logado
 if (!isset($_SESSION['usuario_id'])) {
@@ -11,108 +13,239 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-$perfil = $_SESSION['usuario_perfil'] ?? '';
+// Verifica se o usuário é administrador
+if ($_SESSION['usuario_perfil'] !== 'administrador') {
+    $_SESSION['mensagens'][] = "Acesso negado! Apenas administradores podem acessar esta página.";
+    header("Location: dashboard.php");
+    exit();
+}
 
+// Buscar crimes do ANPP para listagem
+$crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro ANPP</title>
+    <title>Cadastro de ANPP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    /* Ajuste da logo na navbar */
+    .logo-navbar {
+        max-width: 300px;
+        /* Define um tamanho máximo */
+        height: auto;
+        /* Mantém a proporção correta */
+    }
+
+    /* Ajuste para telas menores */
+    @media (max-width: 576px) {
+        .logo-navbar {
+            max-width: 250px;
+            /* Reduz a logo para melhor encaixe */
+            display: block;
+            /* Evita que fique desalinhada */
+            margin: auto;
+            /* Centraliza no mobile */
+        }
+    }
+    </style>
+    </style>
+
+
 </head>
+
 <body class="bg-light">
-    <div class="container mt-4">
-        <h2 class="text-center">Acordo de Não Persecução Penal (ANPP)</h2>
-        <div class="card shadow-sm p-4">
-            <form action="../controllers/cadastrar_anpp.php" method="POST">
-                
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+                <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>"
+                            href="dashboard.php">
+                            <i class="fas fa-home"></i> Início
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>"
+                            href="listar_processos.php">
+                            <i class="fas fa-list"></i> Listar Processos
+                        </a>
+                    </li>
+
+                    <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
+                            href="cadastro_processo.php">
+                            <i class="fas fa-plus"></i> Cadastrar Processos
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- Novos itens de ANPP -->
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>"
+                            href="listar_anpp.php">
+                            <i class="fas fa-scale-balanced"></i> Listagem de ANPPs
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
+                            <i class="fas fa-file-circle-plus"></i> Cadastrar ANPP
+                        </a>
+                    </li>
+                    <!-- Fim dos itens de ANPP -->
+
+                    <?php if ($perfil === 'administrador'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>"
+                            href="gerenciar_usuarios.php">
+                            <i class="fas fa-users-cog"></i> Gerenciar Usuários
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
+                            href="log_atividades.php">
+                            <i class="fas fa-history"></i> Log de Atividades
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
+                            href="cadastro_basico.php">
+                            <i class="fas fa-address-book"></i> Cadastro Básico
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="../controllers/logout.php">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="text-center"><i class="fas fa-file-circle-plus"></i> Cadastrar ANPP</h2>
+        <form action="../controllers/salvar_anpp.php" method="POST">
+            <div class="card p-4 shadow">
                 <div class="mb-3">
-                    <label for="num_ip" class="form-label">N° IP</label>
-                    <input type="text" class="form-control" id="num_ip" name="num_ip" required>
+                    <label for="numero_inquerito" class="form-label">Número do Inquérito</label>
+                    <input type="text" class="form-control" name="numero_inquerito" required>
                 </div>
-                
-                <div class="mb-3">
-                    <label for="crime" class="form-label">Crime</label>
-                    <input type="text" class="form-control" id="crime" name="crime" required>
-                </div>
-                
                 <div class="mb-3">
                     <label for="indiciado" class="form-label">Indiciado</label>
-                    <input type="text" class="form-control" id="indiciado" name="indiciado" required>
+                    <input type="text" class="form-control" name="indiciado" required>
                 </div>
-                
                 <div class="mb-3">
-                    <label for="vitima" class="form-label">Vítima</label>
-                    <input type="text" class="form-control" id="vitima" name="vitima">
-                    <input type="checkbox" id="sem_vitima" onclick="toggleVitima()"> Não há vítima
+                    <label for="crime" class="form-label">Crime</label>
+                    <select class="form-control" name="crime" required>
+                        <option value="">Selecione um Crime</option>
+                        <?php foreach ($crimes_anpp as $crime): ?>
+                        <option value="<?= $crime['id'] ?>"><?= htmlspecialchars($crime['nome']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                
                 <div class="mb-3">
-                    <label class="form-label">Acordo</label><br>
-                    <input type="radio" id="realizado" name="acordo" value="Realizado" required> <label for="realizado">Realizado</label>
-                    <input type="radio" id="nao_realizado" name="acordo" value="Não Realizado"> <label for="nao_realizado">Não Realizado</label>
+                    <label for="nome_vitima" class="form-label">Nome da Vítima</label>
+                    <input type="text" class="form-control" name="nome_vitima">
                 </div>
-                
                 <div class="mb-3">
-                    <label for="data_acordo" class="form-label">Data do Acordo</label>
-                    <input type="date" class="form-control" id="data_acordo" name="data_acordo">
+                    <label for="data_audiencia" class="form-label">Data da Audiência</label>
+                    <input type="date" class="form-control" name="data_audiencia">
                 </div>
-                
+
+
                 <div class="mb-3">
-                    <label for="reparacao_vitima" class="form-label">Reparação da Vítima</label>
-                    <input type="text" class="form-control" id="reparacao_vitima" name="reparacao_vitima">
+                    <label class="form-label">Acordo</label>
+                    <div>
+
+                        <input type="radio" name="acordo" value="realizado" onclick="mostrarCampos(true)"> Realizado
+                        <input type="radio" name="acordo" value="nao_realizado" onclick="mostrarCampos(false)" checked>
+                        Não Realizado
+
+
+
+                    </div>
                 </div>
-                
-                <div class="mb-3">
-                    <label for="valor_reparacao" class="form-label">Valor</label>
-                    <input type="number" class="form-control" id="valor_reparacao" name="valor_reparacao" step="0.01">
+
+
+                <div id="camposAcordo" style="display: none;">
+                    <div class="mb-3">
+                        <label for="reparacao" class="form-label">Reparação da Vítima</label>
+                        <select class="form-control" name="reparacao" onchange="toggleInput(this, 'valor_reparacao')">
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                        <input type="text" class="form-control mt-2" name="valor_reparacao" id="valor_reparacao"
+                            style="display: none;" placeholder="Valor da reparação">
+                    </div>
+                    <div class="mb-3">
+                        <label for="servico_comunitario" class="form-label">Prestação de Serviço Comunitário</label>
+                        <select class="form-control" name="servico_comunitario"
+                            onchange="toggleInput(this, 'tempo_servico')">
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                        <input type="text" class="form-control mt-2" name="tempo_servico" id="tempo_servico"
+                            style="display: none;" placeholder="Tempo de serviço">
+                    </div>
+                    <div class="mb-3">
+                        <label for="multa" class="form-label">Multa</label>
+                        <select class="form-control" name="multa" onchange="toggleInput(this, 'valor_multa')">
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                        <input type="text" class="form-control mt-2" name="valor_multa" id="valor_multa"
+                            style="display: none;" placeholder="Valor da multa">
+                    </div>
+                    <div class="mb-3">
+                        <label for="restituicao" class="form-label">Restituição da Coisa à Vítima</label>
+                        <input type="text" class="form-control" name="restituicao">
+                    </div>
                 </div>
-                
-                <div class="mb-3">
-                    <label for="restituicao" class="form-label">Restituição da Coisa à Vítima</label>
-                    <input type="text" class="form-control" id="restituicao" name="restituicao">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="prestacao_servico" class="form-label">Prestação de Serviço Comunitário</label>
-                    <input type="text" class="form-control" id="prestacao_servico" name="prestacao_servico">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="tempo_prestacao" class="form-label">Tempo</label>
-                    <input type="text" class="form-control" id="tempo_prestacao" name="tempo_prestacao">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="prestacao_pecuniaria" class="form-label">Prestação Pecuniária</label>
-                    <input type="text" class="form-control" id="prestacao_pecuniaria" name="prestacao_pecuniaria">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="valor_pecuniario" class="form-label">Valor</label>
-                    <input type="number" class="form-control" id="valor_pecuniario" name="valor_pecuniario" step="0.01">
-                </div>
-                
-                <div class="mb-3">
-                    <label for="inicio_execucao" class="form-label">Início da Execução</label>
-                    <input type="date" class="form-control" id="inicio_execucao" name="inicio_execucao">
-                </div>
-                
-                <button type="submit" class="btn btn-success w-100">Cadastrar</button>
-            </form>
-        </div>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function toggleVitima() {
-            let vitimaInput = document.getElementById("vitima");
-            let semVitima = document.getElementById("sem_vitima");
-            vitimaInput.disabled = semVitima.checked;
-            vitimaInput.value = semVitima.checked ? "Não há" : "";
-        }
-    </script>
+    function mostrarCampos(ativo) {
+        document.getElementById('camposAcordo').style.display = ativo ? 'block' : 'none';
+    }
 
+    function toggleInput(select, inputId) {
+        document.getElementById(inputId).style.display = select.value === 'sim' ? 'block' : 'none';
+    }
+    </script>
 </body>
+
 </html>

@@ -33,33 +33,46 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
     <style>
-        .btn-action {
-            width: 100px; /* Mantém o tamanho padrão */
-            text-align: center; /* Centraliza o conteúdo */
-            display: inline-flex; /* Mantém alinhamento entre ícone e texto */
-            align-items: center; /* Centraliza verticalmente */
-            justify-content: center; /* Centraliza horizontalmente */
-            white-space: nowrap; /* Impede que o texto quebre */
-            margin: 3px; /* Adiciona um espaçamento entre os botões */
-        }
+    .btn-action {
+        width: 100px;
+        /* Mantém o tamanho padrão */
+        text-align: center;
+        /* Centraliza o conteúdo */
+        display: inline-flex;
+        /* Mantém alinhamento entre ícone e texto */
+        align-items: center;
+        /* Centraliza verticalmente */
+        justify-content: center;
+        /* Centraliza horizontalmente */
+        white-space: nowrap;
+        /* Impede que o texto quebre */
+        margin: 3px;
+        /* Adiciona um espaçamento entre os botões */
+    }
 
-        .btn-action:not(:last-child) {
-            margin-right: 5px; /* Espaço entre os botões */
-        }
-      
-        /* Ajuste da logo na navbar */
+    .btn-action:not(:last-child) {
+        margin-right: 5px;
+        /* Espaço entre os botões */
+    }
+
+    /* Ajuste da logo na navbar */
+    .logo-navbar {
+        max-width: 300px;
+        /* Define um tamanho máximo */
+        height: auto;
+        /* Mantém a proporção correta */
+    }
+
+    /* Ajuste para telas menores */
+    @media (max-width: 576px) {
         .logo-navbar {
-        max-width: 300px; /* Define um tamanho máximo */
-        height: auto; /* Mantém a proporção correta */
+            max-width: 250px;
+            /* Reduz a logo para melhor encaixe */
+            display: block;
+            /* Evita que fique desalinhada */
+            margin: auto;
+            /* Centraliza no mobile */
         }
-
-        /* Ajuste para telas menores */
-        @media (max-width: 576px) {
-            .logo-navbar {
-                max-width: 250px; /* Reduz a logo para melhor encaixe */
-                display: block; /* Evita que fique desalinhada */
-                margin: auto; /* Centraliza no mobile */
-            }
     }
     </style>
 
@@ -67,69 +80,91 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
 
 <body class="bg-light">
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
-    
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-        <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar"> 
-        </a>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+                <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+            </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
 
-                <li class="nav-item">
-                    <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>" href="dashboard.php">
-                        <i class="fas fa-home"></i> Início
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php"><i class="fas fa-list">
-                    </i> Listar Processos</a>
-                </li>
-
-                <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>" href="cadastro_processo.php">
-                        <i class="fas fa-plus"></i> Cadastrar Processos</a>
+                        <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>"
+                            href="dashboard.php">
+                            <i class="fas fa-home"></i> Início
+                        </a>
                     </li>
-                <?php endif; ?>
-
-                <?php if ($perfil === 'administrador'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>" href="gerenciar_usuarios.php">
-                            <i class="fas fa-users-cog"></i> Gerenciar Usuários</a>
-                        </li>
 
                     <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-                            <i class="fas fa-history">
-                            </i> Log de Atividades</a>
-                        </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>" href="cadastro_basico.php">
-                        <i class="fas fa-address-book">
-                        </i> Cadastro Básico</a>
+                        <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>"
+                            href="listar_processos.php">
+                            <i class="fas fa-list"></i> Listar Processos
+                        </a>
                     </li>
-                <?php endif; ?>
 
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="../controllers/logout.php">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Sair
-                    </a>
-                </li>
+                    <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
+                            href="cadastro_processo.php">
+                            <i class="fas fa-plus"></i> Cadastrar Processos
+                        </a>
+                    </li>
+                    <?php endif; ?>
 
-            </ul>
+                    <!-- Novos itens de ANPP -->
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>"
+                            href="listar_anpp.php">
+                            <i class="fas fa-scale-balanced"></i> Listagem de ANPPs
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
+                            <i class="fas fa-file-circle-plus"></i> Cadastrar ANPP
+                        </a>
+                    </li>
+                    <!-- Fim dos itens de ANPP -->
+
+                    <?php if ($perfil === 'administrador'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>"
+                            href="gerenciar_usuarios.php">
+                            <i class="fas fa-users-cog"></i> Gerenciar Usuários
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
+                            href="log_atividades.php">
+                            <i class="fas fa-history"></i> Log de Atividades
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
+                            href="cadastro_basico.php">
+                            <i class="fas fa-address-book"></i> Cadastro Básico
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="../controllers/logout.php">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 
 
@@ -198,11 +233,12 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
 
                             <a href="../controllers/deletar_usuario.php?id=<?= $usuario['id'] ?>"
                                 class="btn btn-danger btn-sm btn-action"
-                                onclick="return confirm('Tem certeza que deseja excluir?');"><i class="fas fa-trash"></i> Excluir
+                                onclick="return confirm('Tem certeza que deseja excluir?');"><i
+                                    class="fas fa-trash"></i> Excluir
                             </a>
 
                             <a href="../controllers/ativar_usuario.php?id=<?= $usuario['id'] ?>"
-                            class="btn btn-sm btn-action <?= $usuario['aprovado'] ? 'btn-success' : 'btn-secondary' ?>">
+                                class="btn btn-sm btn-action <?= $usuario['aprovado'] ? 'btn-success' : 'btn-secondary' ?>">
                                 <i class="fas <?= $usuario['aprovado'] ? 'fa-toggle-on' : 'fa-toggle-off' ?>"></i>
                                 <?= $usuario['aprovado'] ? 'Desativar' : 'Ativar' ?>
                             </a>

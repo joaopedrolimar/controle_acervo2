@@ -34,94 +34,114 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
     <style>
     /* Ajuste da logo na navbar */
     .logo-navbar {
-    max-width: 300px; /* Define um tamanho máximo */
-    height: auto; /* Mantém a proporção correta */
+        max-width: 300px;
+        /* Define um tamanho máximo */
+        height: auto;
+        /* Mantém a proporção correta */
     }
 
     /* Ajuste para telas menores */
     @media (max-width: 576px) {
         .logo-navbar {
-            max-width: 250px; /* Reduz a logo para melhor encaixe */
-            display: block; /* Evita que fique desalinhada */
-            margin: auto; /* Centraliza no mobile */
+            max-width: 250px;
+            /* Reduz a logo para melhor encaixe */
+            display: block;
+            /* Evita que fique desalinhada */
+            margin: auto;
+            /* Centraliza no mobile */
         }
     }
-
-
     </style>
-
 </head>
 
 <body class="bg-light">
 
-<!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
-    
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-        <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+                <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+            </a>
 
-        </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>" href="dashboard.php">
-                        <i class="fas fa-home"></i> Início
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php"><i class="fas fa-list">
-                    </i> Listar Processos</a>
-                </li>
-
-                <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>" href="cadastro_processo.php">
-                        <i class="fas fa-plus"></i> Cadastrar Processos</a>
+                        <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>"
+                            href="dashboard.php">
+                            <i class="fas fa-home"></i> Início
+                        </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>"
+                            href="listar_processos.php">
+                            <i class="fas fa-list"></i> Listar Processos
+                        </a>
+                    </li>
+
+                    <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
+                            href="cadastro_processo.php">
+                            <i class="fas fa-plus"></i> Cadastrar Processos
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
+                    <!-- Novos itens de ANPP -->
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>"
+                            href="listar_anpp.php">
+                            <i class="fas fa-scale-balanced"></i> Listagem de ANPPs
+                        </a>
+                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
-                        <i class="fas fa-plus"></i> ANPP</a>
+                            <i class="fas fa-file-circle-plus"></i> Cadastrar ANPP
+                        </a>
                     </li>
-                <?php endif; ?>
+                    <!-- Fim dos itens de ANPP -->
 
-                <?php if ($perfil === 'administrador'): ?>
+                    <?php if ($perfil === 'administrador'): ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>" href="gerenciar_usuarios.php">
-                            <i class="fas fa-users-cog"></i> Gerenciar Usuários</a>
-                        </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-                            <i class="fas fa-history">
-                            </i> Log de Atividades</a>
-                        </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>" href="cadastro_basico.php">
-                        <i class="fas fa-address-book">
-                        </i> Cadastro Básico</a>
+                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>"
+                            href="gerenciar_usuarios.php">
+                            <i class="fas fa-users-cog"></i> Gerenciar Usuários
+                        </a>
                     </li>
-                <?php endif; ?>
 
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="../controllers/logout.php">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Sair
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
+                            href="log_atividades.php">
+                            <i class="fas fa-history"></i> Log de Atividades
+                        </a>
+                    </li>
 
-            </ul>
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
+                            href="cadastro_basico.php">
+                            <i class="fas fa-address-book"></i> Cadastro Básico
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="../controllers/logout.php">
+                            <i class="fas fa-sign-out-alt"></i> Sair
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
+
 
 
     <div class="container mt-4">

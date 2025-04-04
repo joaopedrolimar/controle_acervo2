@@ -1,73 +1,103 @@
-<!--controllers/gerar_pdf.php-->
 <?php
-require('../fpdf/fpdf.php'); // Certifique-se de que o caminho está correto
-require_once "../config/conexao.php"; // Conexão com o banco
+require_once '../vendor/autoload.php';
+require_once '../config/conexao.php';
 
-// Verifica se foi passado um ID válido
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    die("ID inválido.");
+use Dompdf\Options;
+use Dompdf\Dompdf;
+
+// Ativa imagens remotas
+$options = new Options();
+$options->set('isRemoteEnabled', true);
+$dompdf = new Dompdf($options);
+
+// ID do processo
+$id = $_GET['id'] ?? null;
+if (!$id) {
+    die("ID do processo não fornecido.");
 }
 
-$id = $_GET['id'];
-
-// Busca os dados do processo no banco
-$stmt = $pdo->prepare("
-    SELECT processos.*, 
-           crimes.nome AS nome_crime, 
-           municipios.nome AS nome_municipio, 
-           bairros.nome AS nome_bairro
-    FROM processos 
-    LEFT JOIN crimes ON processos.crime_id = crimes.id
-    LEFT JOIN municipios ON processos.local_municipio = municipios.id
-    LEFT JOIN bairros ON processos.local_bairro = bairros.id
-    WHERE processos.id = :id
-");
-$stmt->bindParam(':id', $id, PDO::PARAM_INT);
-$stmt->execute();
+// Consulta
+$stmt = $pdo->prepare("SELECT p.*, c.nome AS crime_nome, m.nome AS municipio_nome, b.nome AS bairro_nome 
+                       FROM processos p
+                       LEFT JOIN crimes c ON p.crime_id = c.id
+                       LEFT JOIN municipios m ON p.local_municipio = m.id
+                       LEFT JOIN bairros b ON p.local_bairro = b.id
+                       WHERE p.id = ?");
+$stmt->execute([$id]);
 $processo = $stmt->fetch(PDO::FETCH_ASSOC);
-
 if (!$processo) {
     die("Processo não encontrado.");
 }
 
-// Criando o PDF com FPDF
-$pdf = new FPDF();
-$pdf->AddPage();
-$pdf->SetFont('Arial', 'B', 16);
-$pdf->Cell(190, 10, 'Detalhes do Processo', 0, 1, 'C');
-$pdf->Ln(10);
+// Funções auxiliares
+function exibir($valor) {
+    return !empty($valor) ? htmlspecialchars($valor) : 'Não há';
+}
+function dataFormatada($data) {
+    return (!empty($data) && $data !== '0000-00-00') ? date('d/m/Y', strtotime($data)) : 'Não há';
+}
 
-$pdf->SetFont('Arial', '', 12);
-$pdf->Cell(50, 10, 'Número:', 0, 0);
-$pdf->Cell(140, 10, $processo['numero'], 0, 1);
+// Caminho via HTTP (acessível ao navegador e DomPDF)
+$logoPath = 'http://localhost/controle_acervo2/public/img/logo.png';
 
-$pdf->Cell(50, 10, 'Natureza:', 0, 0);
-$pdf->Cell(140, 10, $processo['natureza'], 0, 1);
+// HTML do PDF
+$html = '
+<style>
+    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+    h1, h2, h3 { text-align: center; margin-bottom: 5px; }
+    .logo { text-align: center; margin-bottom: 10px; }
+    .section { margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    td, th { border: 1px solid #000; padding: 6px; text-align: left; }
+</style>
 
-$pdf->Cell(50, 10, 'Data da Denúncia:', 0, 0);
-$pdf->Cell(140, 10, date('d/m/Y', strtotime($processo['data_denuncia'])), 0, 1);
+<div class="logo">
+    <img src="' . $logoPath . '" height="80">
+</div>
 
-$pdf->Cell(50, 10, 'Crime:', 0, 0);
-$pdf->Cell(140, 10, $processo['nome_crime'], 0, 1);
+<h2>Ministério Público do Estado do Amazonas</h2>
+<h3>Procuradoria-Geral de Justiça</h3>
+<h1>Sistema de Acervo</h1>
 
-$pdf->Cell(50, 10, 'Denunciado:', 0, 0);
-$pdf->Cell(140, 10, $processo['denunciado'], 0, 1);
+<div class="section">
+    <h3>🧾 Dados do Processo</h3>
+    <table>
+        <tr><td><strong>ID:</strong></td><td>' . $processo['id'] . '</td></tr>
+        <tr><td><strong>Número:</strong></td><td>' . exibir($processo['numero']) . '</td></tr>
+        <tr><td><strong>Natureza:</strong></td><td>' . exibir($processo['natureza']) . '</td></tr>
+        <tr><td><strong>Data da Denúncia:</strong></td><td>' . dataFormatada($processo['data_denuncia']) . '</td></tr>
+        <tr><td><strong>Crime:</strong></td><td>' . exibir($processo['crime_nome']) . '</td></tr>
+    </table>
+</div>
 
-$pdf->Cell(50, 10, 'Vítima:', 0, 0);
-$pdf->Cell(140, 10, $processo['vitima'] ?? 'Não há', 0, 1);
+<div class="section">
+    <h3>👤 Envolvidos</h3>
+    <table>
+        <tr><td><strong>Vítima:</strong></td><td>' . exibir($processo['vitima']) . '</td></tr>
+        <tr><td><strong>Denunciado:</strong></td><td>' . exibir($processo['denunciado']) . '</td></tr>
+    </table>
+</div>
 
-$pdf->Cell(50, 10, 'Local do Crime:', 0, 0);
-$pdf->Cell(140, 10, $processo['nome_municipio'] . ' - ' . $processo['nome_bairro'], 0, 1);
+<div class="section">
+    <h3>📍 Local do Fato</h3>
+    <table>
+        <tr><td><strong>Município:</strong></td><td>' . exibir($processo['municipio_nome']) . '</td></tr>
+        <tr><td><strong>Bairro:</strong></td><td>' . exibir($processo['bairro_nome']) . '</td></tr>
+    </table>
+</div>
 
-$pdf->Cell(50, 10, 'Sentença:', 0, 0);
-$pdf->Cell(140, 10, $processo['sentenca'], 0, 1);
+<div class="section">
+    <h3>📄 Informações Finais</h3>
+    <table>
+        <tr><td><strong>Sentença:</strong></td><td>' . exibir($processo['sentenca']) . '</td></tr>
+        <tr><td><strong>Recursos:</strong></td><td>' . exibir($processo['recursos']) . '</td></tr>
+        <tr><td><strong>Status:</strong></td><td>' . exibir($processo['status']) . '</td></tr>
+    </table>
+</div>
+';
 
-$pdf->Cell(50, 10, 'Recursos:', 0, 0);
-$pdf->Cell(140, 10, $processo['recursos'], 0, 1);
-
-$pdf->Cell(50, 10, 'Status:', 0, 0);
-$pdf->Cell(140, 10, $processo['status'], 0, 1);
-
-$pdf->Output('D', "Processo_{$processo['numero']}.pdf"); // Força o download do PDF
-exit();
-?>
+$dompdf->loadHtml($html);
+$dompdf->setPaper('A4', 'portrait');
+$dompdf->render();
+$dompdf->stream("processo_{$id}.pdf", ["Attachment" => false]);
+exit;

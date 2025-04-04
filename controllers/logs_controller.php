@@ -1,3 +1,4 @@
+<!--/controllers/logs_controller.php"-->
 <?php
 require_once "../config/conexao.php";
 global $pdo;
