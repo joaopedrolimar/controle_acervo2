@@ -16,6 +16,14 @@ $nome_usuario = $_SESSION['usuario_nome'];
 $perfil = $_SESSION['usuario_perfil'] ?? '';
 
 $pagina_atual = basename($_SERVER['PHP_SELF']);
+
+// Contagem de processos por status
+$sql_cadastrados = "SELECT COUNT(*) FROM processos WHERE status = 'Cadastrado'";
+$sql_finalizados = "SELECT COUNT(*) FROM processos WHERE status = 'Finalizado'";
+$cadastrados = $pdo->query($sql_cadastrados)->fetchColumn();
+$finalizados = $pdo->query($sql_finalizados)->fetchColumn();
+
+
 ?>
 
 <!DOCTYPE html>
@@ -51,6 +59,13 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
             /* Centraliza no mobile */
         }
     }
+
+    canvas {
+        background-color: #fff;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+    }
     </style>
 </head>
 
@@ -76,6 +91,8 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                             <i class="fas fa-home"></i> Início
                         </a>
                     </li>
+
+
 
                     <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>"
@@ -117,6 +134,13 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                     </li>
 
                     <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+                            <i class="fas fa-file-alt"></i> Atos
+                        </a>
+                    </li>
+
+
+                    <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
                             href="log_atividades.php">
                             <i class="fas fa-history"></i> Log de Atividades
@@ -146,9 +170,44 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
 
     <div class="container mt-4">
         <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
+
+        <div class="container d-flex flex-column align-items-center mt-5">
+            <h2 class="text-center mb-4"><i class="fas fa-chart-pie"></i> Situação dos Processos</h2>
+            <div style="max-width: 400px; width: 100%;">
+                <canvas id="graficoStatus"></canvas>
+            </div>
+        </div>
+
+
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+    const graficoStatus = new Chart(ctxStatus, {
+        type: 'pie',
+        data: {
+            labels: ['Cadastrado', 'Finalizado'],
+            datasets: [{
+                data: [<?= $cadastrados ?>, <?= $finalizados ?>],
+                backgroundColor: ['#ffc107', '#198754'], // amarelo e verde
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    </script>
+
+
 </body>
 
 </html>

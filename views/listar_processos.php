@@ -49,19 +49,47 @@ $sql = "SELECT processos.*,
 $params = [];
 
 if (!empty($search)) {
-    $sql .= " AND (
-        processos.numero LIKE :search 
-        OR crimes.nome LIKE :search
-        OR processos.natureza LIKE :search
-        OR processos.denunciado LIKE :search 
-        OR processos.vitima LIKE :search 
-        OR processos.local_municipio LIKE :search 
-        OR processos.local_bairro LIKE :search 
-        OR processos.sentenca LIKE :search 
-        OR processos.status LIKE :search
-    )";
-    $params[':search'] = "%$search%";
+    $search_normalizado = iconv('UTF-8', 'ASCII//TRANSLIT', mb_strtolower(trim($search)));
+
+    $is_nao_ha = trim($search_normalizado) === 'nao ha';
+
+    $sql .= " AND (";
+
+    // Condições de LIKE
+    if (!$is_nao_ha) {
+        $sql .= "
+            CAST(processos.id AS CHAR) LIKE :search
+            OR processos.numero LIKE :search 
+            OR crimes.nome LIKE :search
+            OR processos.natureza LIKE :search
+            OR processos.denunciado LIKE :search 
+            OR COALESCE(processos.vitima, '') LIKE :search
+            OR COALESCE(processos.local_municipio, '') LIKE :search 
+            OR COALESCE(processos.local_bairro, '') LIKE :search 
+            OR COALESCE(processos.sentenca, '') LIKE :search 
+            OR COALESCE(processos.recursos, '') LIKE :search
+            OR COALESCE(processos.status, '') LIKE :search
+        ";
+    }
+
+    // Se buscar "não há", adiciona verificação de campos nulos ou vazios
+    if ($is_nao_ha) {
+        $sql .= "
+            processos.vitima IS NULL OR TRIM(processos.vitima) = ''
+            OR processos.recursos IS NULL OR TRIM(processos.recursos) = ''
+            OR processos.status IS NULL OR TRIM(processos.status) = ''
+        ";
+    }
+
+    $sql .= ")";
+
+    if (!$is_nao_ha) {
+        $params[':search'] = "%$search%";
+    }
 }
+
+
+
 
 
 if ($advanced_search) {
@@ -122,18 +150,44 @@ $sql_count = "SELECT COUNT(*) AS total
               WHERE 1=1";
 
 if (!empty($search)) {
-    $sql_count .= " AND (
-        processos.numero LIKE :search 
-        OR crimes.nome LIKE :search
-        OR processos.natureza LIKE :search
-        OR processos.denunciado LIKE :search 
-        OR processos.vitima LIKE :search 
-        OR processos.local_municipio LIKE :search 
-        OR processos.local_bairro LIKE :search 
-        OR processos.sentenca LIKE :search 
-        OR processos.status LIKE :search
-    )";
+    $search_normalizado = iconv('UTF-8', 'ASCII//TRANSLIT', mb_strtolower(trim($search)));
+    $is_nao_ha = trim($search_normalizado) === 'nao ha';
+
+    $sql_count .= " AND (";
+
+    if (!$is_nao_ha) {
+        $sql_count .= "
+            CAST(processos.id AS CHAR) LIKE :search
+            OR processos.numero LIKE :search 
+            OR crimes.nome LIKE :search
+            OR processos.natureza LIKE :search
+            OR processos.denunciado LIKE :search 
+            OR COALESCE(processos.vitima, '') LIKE :search 
+            OR COALESCE(processos.local_municipio, '') LIKE :search 
+            OR COALESCE(processos.local_bairro, '') LIKE :search 
+            OR COALESCE(processos.sentenca, '') LIKE :search 
+            OR COALESCE(processos.recursos, '') LIKE :search
+            OR COALESCE(processos.status, '') LIKE :search
+        ";
+    }
+
+    if ($is_nao_ha) {
+        $sql_count .= "
+            processos.vitima IS NULL OR TRIM(processos.vitima) = ''
+            OR processos.recursos IS NULL OR TRIM(processos.recursos) = ''
+            OR processos.status IS NULL OR TRIM(processos.status) = ''
+        ";
+    }
+
+    $sql_count .= ")";
+
+    if (!$is_nao_ha) {
+        $params[':search'] = "%$search%";
+    }
 }
+
+
+
 
 if ($advanced_search) {
     if (!empty($id_filter)) {
@@ -285,6 +339,13 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php if ($perfil === 'administrador'): ?>
                     <li class="nav-item"><a class="nav-link" href="gerenciar_usuarios.php"><i
                                 class="fas fa-users-cog"></i> Gerenciar Usuários</a></li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+                            <i class="fas fa-file-alt"></i> Atos
+                        </a>
+                    </li>
+
 
                     <li class="nav-item">
                         <a class="nav-link" href="log_atividades.php">

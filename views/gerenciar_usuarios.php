@@ -141,6 +141,13 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                     </li>
 
                     <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+                            <i class="fas fa-file-alt"></i> Atos
+                        </a>
+                    </li>
+
+
+                    <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
                             href="log_atividades.php">
                             <i class="fas fa-history"></i> Log de Atividades
@@ -225,6 +232,38 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                         <td><?= ucfirst($usuario['perfil']) ?></td>
                         <td><?= $usuario['aprovado'] ? 'Ativado' : 'Desativado' ?></td>
                         <td>
+
+                            <!-- Botão para abrir modal -->
+                            <button class="btn btn-info btn-sm btn-action" data-bs-toggle="modal"
+                                data-bs-target="#modalSenha<?= $usuario['id'] ?>">
+                                <i class="fas fa-key"></i> Senha
+                            </button>
+
+                            <!-- Modal de Alterar Senha -->
+                            <div class="modal fade" id="modalSenha<?= $usuario['id'] ?>" tabindex="-1"
+                                aria-labelledby="modalLabel<?= $usuario['id'] ?>" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <form method="POST" action="../controllers/alterar_senha_usuario.php">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Alterar Senha de
+                                                    <?= htmlspecialchars($usuario['nome']) ?></h5>
+                                                <button type="button" class="btn-close"
+                                                    data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <input type="hidden" name="usuario_id" value="<?= $usuario['id'] ?>">
+                                                <label>Nova Senha</label>
+                                                <input type="password" name="nova_senha" class="form-control" required>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" name="alterar_senha"
+                                                    class="btn btn-success">Salvar</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
 
 
                             <a href="../controllers/editar_usuario.php?id=<?= $usuario['id'] ?>"

@@ -21,6 +21,57 @@ $stmt = $pdo->query($sql);
 $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $pagina_atual = basename($_SERVER['PHP_SELF']);
+
+$registrosPorPagina = 10;
+$paginaAtual = isset($_GET['pagina']) ? max(1, intval($_GET['pagina'])) : 1;
+$offset = ($paginaAtual - 1) * $registrosPorPagina;
+
+// Busca
+$busca = $_GET['busca'] ?? '';
+
+$buscaSql = "";
+$params = [];
+
+if (!empty($busca)) {
+    $buscaSql = " AND (
+        usuarios.nome LIKE :busca OR
+        logs.acao LIKE :busca OR
+        logs.tabela_afetada LIKE :busca OR
+        logs.registro_id LIKE :busca
+    )";
+
+    $params[':busca'] = "%$busca%";
+}
+
+// Consulta principal com paginação
+$sql = "SELECT logs.*, usuarios.nome AS usuario_nome 
+        FROM logs 
+        JOIN usuarios ON logs.usuario_id = usuarios.id
+        WHERE 1=1 $buscaSql
+        ORDER BY logs.data_hora DESC
+        LIMIT :limit OFFSET :offset";
+
+$stmt = $pdo->prepare($sql);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value);
+}
+$stmt->bindValue(':limit', $registrosPorPagina, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
+$logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Total para paginação
+$sqlTotal = "SELECT COUNT(*) FROM logs 
+             JOIN usuarios ON logs.usuario_id = usuarios.id
+             WHERE 1=1 $buscaSql";
+$stmtTotal = $pdo->prepare($sqlTotal);
+foreach ($params as $key => $value) {
+    $stmtTotal->bindValue($key, $value);
+}
+$stmtTotal->execute();
+$totalRegistros = $stmtTotal->fetchColumn();
+$totalPaginas = ceil($totalRegistros / $registrosPorPagina);
+
 ?>
 
 <!DOCTYPE html>
@@ -122,6 +173,13 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
                     </li>
 
                     <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+                            <i class="fas fa-file-alt"></i> Atos
+                        </a>
+                    </li>
+
+
+                    <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
                             href="log_atividades.php">
                             <i class="fas fa-history"></i> Log de Atividades
@@ -154,6 +212,14 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
     <div class="container mt-4">
 
         <h2 class="text-center"><i class="fas fa-history"></i> Log de Atividades</h2>
+
+        <form method="GET" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="busca" class="form-control" placeholder="🔍 Buscar por ação, usuário ou tabela"
+                    value="<?= htmlspecialchars($busca) ?>">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
+            </div>
+        </form>
 
         <div class="table-responsive">
             <table class="table table-striped">
@@ -203,6 +269,16 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
             </table>
         </div>
     </div>
+    <nav>
+        <ul class="pagination justify-content-center">
+            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
+            <li class="page-item <?= ($i == $paginaAtual) ? 'active' : '' ?>">
+                <a class="page-link" href="?pagina=<?= $i ?>&busca=<?= urlencode($busca) ?>"><?= $i ?></a>
+            </li>
+            <?php endfor; ?>
+        </ul>
+    </nav>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

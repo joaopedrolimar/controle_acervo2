@@ -78,8 +78,16 @@ try {
     function toggleVitima() {
         let check = document.getElementById("semVitima");
         let vitimaInput = document.getElementById("vitima");
-        vitimaInput.disabled = check.checked;
+
+        if (check.checked) {
+            vitimaInput.value = "Não há";
+            vitimaInput.readOnly = true;
+        } else {
+            vitimaInput.value = "";
+            vitimaInput.readOnly = false;
+        }
     }
+
 
     // Função para exibir/esconder campos de sentença
     function toggleSentenca() {
@@ -162,6 +170,13 @@ try {
                             <i class="fas fa-users-cog"></i> Gerenciar Usuários
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+                            <i class="fas fa-file-alt"></i> Atos
+                        </a>
+                    </li>
+
 
                     <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
@@ -309,6 +324,7 @@ try {
                                 <label for="vitima" class="form-label">Vítima</label>
                                 <input type="text" class="form-control" id="vitima" name="vitima">
                                 <input type="checkbox" id="semVitima" onclick="toggleVitima()"> Não há vítima
+
                             </div>
 
                             <!--Sentença-->

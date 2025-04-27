@@ -215,6 +215,13 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
                     </li>
 
                     <li class="nav-item">
+                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+                            <i class="fas fa-file-alt"></i> Atos
+                        </a>
+                    </li>
+
+
+                    <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
                             href="log_atividades.php">
                             <i class="fas fa-history"></i> Log de Atividades

@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Se já estiver logado, redireciona para o dashboard
 if (isset($_SESSION['usuario_id'])) {
     header("Location: dashboard.php");
     exit();
@@ -9,54 +8,111 @@ if (isset($_SESSION['usuario_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <!-- Bootstrap CSS -->
+
+    <!-- Bootstrap e FontAwesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+    body {
+        background-color: #f4f5f7;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .logo-navbar {
+        max-width: 300px;
+        height: auto;
+    }
+
+    @media (max-width: 576px) {
+        .logo-navbar {
+            max-width: 220px;
+            margin: auto;
+            display: block;
+        }
+    }
+
+    .login-card {
+        border-radius: 1rem;
+        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+
+    .form-control:focus {
+        border-color: #900020;
+        box-shadow: 0 0 0 0.2rem rgba(144, 0, 32, 0.25);
+    }
+
+
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .btn-secondary:hover {
+        background-color: #6c757d;
+        border-color: #5c636a;
+    }
+    </style>
 </head>
 
-<body class="d-flex align-items-center justify-content-center vh-100 bg-light">
+<body>
+    <!-- Navbar fixa com logo -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
+        <div class="container">
+            <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+        </div>
+    </nav>
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h3 class="text-center">Login</h3>
+    <!-- Conteúdo central -->
+    <div class="container d-flex align-items-center justify-content-center vh-100">
+        <div class="col-md-4">
+            <div class="card login-card p-4">
+                <h3 class="text-center mb-4">Login</h3>
 
-                        <?php if (isset($_SESSION['erro_login'])): ?>
-                        <div class="alert alert-danger text-center">
-                            <?= $_SESSION['erro_login']; ?>
-                        </div>
-                        <?php unset($_SESSION['erro_login']); ?>
-                        <?php endif; ?>
+                <?php if (isset($_SESSION['erro_login'])): ?>
+                <div class="alert alert-danger text-center">
+                    <?= $_SESSION['erro_login']; ?>
+                </div>
+                <?php unset($_SESSION['erro_login']); ?>
+                <?php endif; ?>
 
-                        <form action="../controllers/login_controller.php" method="POST">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">E-mail</label>
-                                <input type="email" id="email" name="email" class="form-control" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="senha" class="form-label">Senha</label>
-                                <input type="password" id="senha" name="senha" class="form-control" required>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100">Entrar</button>
-                        </form>
-
-                        <!-- Botão para abrir o modal -->
-                        <div class="text-center mt-3">
-                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
-                                data-bs-target="#modalAtualizacoes">
-                                Últimas Atualizações
-                            </button>
+                <form action="../controllers/login_controller.php" method="POST">
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa fa-envelope"></i></span>
+                            <input type="email" name="email" class="form-control" placeholder="E-mail" required>
                         </div>
                     </div>
+
+                    <div class="mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fa fa-lock"></i></span>
+                            <input type="password" name="senha" class="form-control" placeholder="Senha" required>
+                        </div>
+                    </div>
+
+
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalAtualizacoes">
+                        Últimas Atualizações
+                    </button>
                 </div>
             </div>
         </div>
@@ -69,15 +125,14 @@ if (isset($_SESSION['usuario_id'])) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalAtualizacoesLabel">Últimas Atualizações</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
                     <ul class="list-group">
                         <li class="list-group-item">
-                            <strong>Versão 1.0:</strong> Primeira versão com as funções necessárias para o início do
-                            sistema.
+                            <strong>Versão 1.0:</strong> Primeira versão com as funções necessárias para o sistema.
                         </li>
-                        <!-- Adicione novas versões aqui -->
+                        <!-- Outras versões aqui -->
                     </ul>
                 </div>
                 <div class="modal-footer">
@@ -87,7 +142,7 @@ if (isset($_SESSION['usuario_id'])) {
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

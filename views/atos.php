@@ -1,5 +1,5 @@
-<!--/controle_acervo/views/anpp.php-->
 <?php
+// controle_acervo/views/atos.php
 session_start();
 require_once "../config/conexao.php";
 global $pdo;
@@ -20,24 +20,47 @@ if ($_SESSION['usuario_perfil'] !== 'administrador') {
     exit();
 }
 
-// Buscar crimes do ANPP para listagem
-$crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
-?>
 
+$categorias = ['CGMPAM', 'CSMPAM', 'PGJMPAM', 'CPJMPAM', 'CNMP', 'OUVIDORIA/MPAM', 'Corregedoria Nacional do Ministério Público'];
+
+// Configuração de paginação
+$registros_por_pagina = 5;
+
+?>
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de ANPP</title>
+    <title>Atos - Biblioteca</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <style>
-    .table-responsive {
-        overflow-x: auto;
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        font-weight: bold;
+        font-size: 1.25rem;
+        text-align: center;
+    }
+
+    .search-input {
+        border-radius: 1rem;
+    }
+
+    .doc-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .pagination {
+        justify-content: center;
     }
 
     /* Ajuste da logo na navbar */
@@ -60,12 +83,10 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
         }
     }
     </style>
-    </style>
-
-
 </head>
 
 <body class="bg-light">
+
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
@@ -133,13 +154,15 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
                         </a>
                     </li>
 
-
                     <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
                             href="log_atividades.php">
                             <i class="fas fa-history"></i> Log de Atividades
                         </a>
                     </li>
+
+
+
 
                     <li class="nav-item">
                         <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
@@ -160,99 +183,94 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <h2 class="text-center"><i class="fas fa-file-circle-plus"></i> Cadastrar ANPP</h2>
-        <form action="../controllers/salvar_anpp.php" method="POST">
-            <div class="card p-4 shadow">
-                <div class="mb-3">
-                    <label for="numero_inquerito" class="form-label">Número do Inquérito</label>
-                    <input type="text" class="form-control" name="numero_inquerito" required>
-                </div>
-                <div class="mb-3">
-                    <label for="indiciado" class="form-label">Indiciado</label>
-                    <input type="text" class="form-control" name="indiciado" required>
-                </div>
-                <div class="mb-3">
-                    <label for="crime" class="form-label">Crime</label>
-                    <select class="form-control" name="crime" required>
-                        <option value="">Selecione um Crime</option>
-                        <?php foreach ($crimes_anpp as $crime): ?>
-                        <option value="<?= $crime['id'] ?>"><?= htmlspecialchars($crime['nome']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="nome_vitima" class="form-label">Nome da Vítima</label>
-                    <input type="text" class="form-control" name="nome_vitima">
-                </div>
-                <div class="mb-3">
-                    <label for="data_audiencia" class="form-label">Data da Audiência</label>
-                    <input type="date" class="form-control" name="data_audiencia">
-                </div>
+    <div class="container py-4">
+        <h2 class="text-center mb-4"><i class="fas fa-file-alt"></i> Atos (Resoluções, Recomendações, Portarias, etc.)
+        </h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
 
+            <?php foreach ($categorias as $categoria): 
+        $pagina = isset($_GET['pagina_' . md5($categoria)]) ? (int)$_GET['pagina_' . md5($categoria)] : 1;
+        $busca = isset($_GET['busca_' . md5($categoria)]) ? trim($_GET['busca_' . md5($categoria)]) : '';
+        $offset = ($pagina - 1) * $registros_por_pagina;
 
-                <div class="mb-3">
-                    <label class="form-label">Acordo</label>
-                    <div>
+        $sql = "SELECT * FROM atos WHERE categoria = :categoria";
+        $params = [':categoria' => $categoria];
 
-                        <input type="radio" name="acordo" value="realizado" onclick="mostrarCampos(true)"> Realizado
-                        <input type="radio" name="acordo" value="nao_realizado" onclick="mostrarCampos(false)" checked>
-                        Não Realizado
+        if (!empty($busca)) {
+          $sql .= " AND nome_arquivo LIKE :busca";
+          $params[':busca'] = "%$busca%";
+        }
 
+        $sql_total = $sql;
+        $sql .= " ORDER BY data_upload DESC LIMIT $offset, $registros_por_pagina";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $documentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Paginação total
+        $stmt_total = $pdo->prepare($sql_total);
+        $stmt_total->execute($params);
+        $total_registros = $stmt_total->rowCount();
+        $total_paginas = ceil($total_registros / $registros_por_pagina);
+      ?>
 
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header bg-light text-dark">
+                        <?= htmlspecialchars($categoria) ?>
+                    </div>
+                    <div class="card-body">
+                        <form method="GET" class="mb-3">
+                            <input type="text" class="form-control search-input" name="busca_<?= md5($categoria) ?>"
+                                placeholder="Buscar documentos..." value="<?= htmlspecialchars($busca) ?>">
+                        </form>
+
+                        <ul class="list-group doc-list">
+                            <?php foreach ($documentos as $doc): ?>
+                            <li class="list-group-item">
+                                <?php if ($doc['tipo'] === 'arquivo'): ?>
+                                <a href="<?= $doc['caminho'] ?>"
+                                    download><?= htmlspecialchars($doc['nome_arquivo']) ?></a>
+                                <?php else: ?>
+                                <a href="<?= $doc['caminho'] ?>"
+                                    target="_blank"><?= htmlspecialchars($doc['nome_arquivo']) ?></a>
+                                <?php endif; ?>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+
+                        <!-- Paginação -->
+                        <nav class="mt-2">
+                            <ul class="pagination pagination-sm">
+                                <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                                <li class="page-item <?= ($i === $pagina) ? 'active' : '' ?>">
+                                    <a class="page-link"
+                                        href="?pagina_<?= md5($categoria) ?>=<?= $i ?>&busca_<?= md5($categoria) ?>=<?= urlencode($busca) ?>"><?= $i ?></a>
+                                </li>
+                                <?php endfor; ?>
+                            </ul>
+                        </nav>
+
+                        <form action="../controllers/upload_ato.php" method="POST" enctype="multipart/form-data"
+                            class="mt-3">
+                            <input type="hidden" name="categoria" value="<?= $categoria ?>">
+                            <div class="mb-2">
+                                <input type="file" name="arquivo" class="form-control">
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" name="link" class="form-control" placeholder="ou cole um link">
+                            </div>
+                            <button type="submit" name="enviar_ato" class="btn btn-primary w-100">Enviar</button>
+                        </form>
                     </div>
                 </div>
-
-
-                <div id="camposAcordo" style="display: none;">
-                    <div class="mb-3">
-                        <label for="reparacao" class="form-label">Reparação da Vítima</label>
-                        <select class="form-control" name="reparacao" onchange="toggleInput(this, 'valor_reparacao')">
-                            <option value="nao">Não</option>
-                            <option value="sim">Sim</option>
-                        </select>
-                        <input type="text" class="form-control mt-2" name="valor_reparacao" id="valor_reparacao"
-                            style="display: none;" placeholder="Valor da reparação">
-                    </div>
-                    <div class="mb-3">
-                        <label for="servico_comunitario" class="form-label">Prestação de Serviço Comunitário</label>
-                        <select class="form-control" name="servico_comunitario"
-                            onchange="toggleInput(this, 'tempo_servico')">
-                            <option value="nao">Não</option>
-                            <option value="sim">Sim</option>
-                        </select>
-                        <input type="text" class="form-control mt-2" name="tempo_servico" id="tempo_servico"
-                            style="display: none;" placeholder="Tempo de serviço">
-                    </div>
-                    <div class="mb-3">
-                        <label for="multa" class="form-label">Multa</label>
-                        <select class="form-control" name="multa" onchange="toggleInput(this, 'valor_multa')">
-                            <option value="nao">Não</option>
-                            <option value="sim">Sim</option>
-                        </select>
-                        <input type="text" class="form-control mt-2" name="valor_multa" id="valor_multa"
-                            style="display: none;" placeholder="Valor da multa">
-                    </div>
-                    <div class="mb-3">
-                        <label for="restituicao" class="form-label">Restituição da Coisa à Vítima</label>
-                        <input type="text" class="form-control" name="restituicao">
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary">Salvar</button>
             </div>
-        </form>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    function mostrarCampos(ativo) {
-        document.getElementById('camposAcordo').style.display = ativo ? 'block' : 'none';
-    }
+            <?php endforeach; ?>
 
-    function toggleInput(select, inputId) {
-        document.getElementById(inputId).style.display = select.value === 'sim' ? 'block' : 'none';
-    }
-    </script>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

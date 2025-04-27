@@ -13,7 +13,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
     $data_denuncia = $_POST['data_denuncia'];
     $crime_id = intval($_POST['crime']); // Agora usamos o ID do crime
     $denunciado = trim($_POST['denunciado']);
-    $vitima = isset($_POST['vitima']) ? trim($_POST['vitima']) : null;
+
+    if (isset($_POST['semVitima'])) {
+        $vitima = 'Não há';
+    } else {
+        $vitima = isset($_POST['vitima']) ? trim($_POST['vitima']) : null;
+    }
+    
+    
     $local_municipio = trim($_POST['municipio']);
     $local_bairro = trim($_POST['bairro']);
     $sentenca = trim($_POST['sentenca']);
