@@ -27,7 +27,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
     $outra_sentenca = isset($_POST['outra_sentenca']) ? trim($_POST['outra_sentenca']) : null;
     $data_sentenca = isset($_POST['data_sentenca']) ? $_POST['data_sentenca'] : null;
     $recursos = trim($_POST['recursos']);
-    $status = "Cadastrado"; // Sempre começa com status "Cadastrado"
+$status = "Ativo"; // Sempre começa com status "Ativo"
+
     $usuario_id = $_SESSION['usuario_id']; // ID do usuário logado
 
     try {

@@ -247,9 +247,11 @@ try {
                                     onchange="toggleOutraNatureza()" required>
                                     <option value="Ação Penal">Ação Penal</option>
                                     <option value="Inquérito Policial">Inquérito Policial</option>
-                                    <option value="PICNF">PICNF</option>
+                                    <option value="PIC">PIC</option>
+                                    <option value="NF">NF</option>
                                     <option value="Outra">Outra Natureza</option>
                                 </select>
+
                                 <input type="text" class="form-control mt-2" id="outraNatureza" name="outra_natureza"
                                     placeholder="Especifique..." style="display:none;">
                             </div>
@@ -351,14 +353,14 @@ try {
                                     <option value="Não há">Não há</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-control" id="status" name="status" required>
-                                    <option value="Cadastrado">Cadastrado</option>
+                                    <option value="Ativo" selected>Ativo</option>
                                     <option value="Finalizado">Finalizado</option>
                                 </select>
                             </div>
+
 
 
 

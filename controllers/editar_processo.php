@@ -264,8 +264,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                                     <option value="Inquérito Policial"
                                         <?= $processo['natureza'] == "Inquérito Policial" ? "selected" : "" ?>>Inquérito
                                         Policial</option>
-                                    <option value="PICNF" <?= $processo['natureza'] == "PICNF" ? "selected" : "" ?>>
-                                        PICNF</option>
+
+                                    <option value="PIC" <?= $processo['natureza'] == "PIC" ? "selected" : "" ?>>
+                                        PIC</option>
+
+                                    <option value="NF" <?= $processo['natureza'] == "NF" ? "selected" : "" ?>>
+                                        NF</option>
+
                                     <option value="Outra" <?= !empty($processo['outra_natureza']) ? "selected" : "" ?>>
                                         Outra</option>
                                 </select>
@@ -379,8 +384,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                             <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-control" name="status" required>
-                                    <option value="Cadastrado"
-                                        <?= ($processo['status'] === 'Cadastrado') ? 'selected' : '' ?>>Cadastrado
+                                    <option value="Ativo" <?= ($processo['status'] === 'Ativo') ? 'selected' : '' ?>>
+                                        Ativo
                                     </option>
                                     <option value="Finalizado"
                                         <?= ($processo['status'] === 'Finalizado') ? 'selected' : '' ?>>Finalizado

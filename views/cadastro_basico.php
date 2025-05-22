@@ -298,7 +298,7 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
                         </form>
 
                         <form action="" method="POST">
-                            <h6>Crime</h6>
+                            <h6>Crimes Gerais</h6>
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" name="novo_crime"
                                     placeholder="Digite o nome do crime" required>
@@ -309,7 +309,7 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
 
                         <!-- Formulário de Crimes do ANPP -->
                         <form action="" method="POST">
-                            <h6>Crime do ANPP</h6>
+                            <h6>Crimes do ANPP</h6>
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control" name="novo_crime_anpp"
                                     placeholder="Digite o crime do ANPP" required>

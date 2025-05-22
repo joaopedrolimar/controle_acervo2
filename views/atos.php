@@ -195,11 +195,11 @@ $registros_por_pagina = 5;
 
         $sql = "SELECT * FROM atos WHERE categoria = :categoria";
         $params = [':categoria' => $categoria];
+if (!empty($busca)) {
+  $sql .= " AND (nome_arquivo LIKE :busca OR titulo LIKE :busca)";
+  $params[':busca'] = "%$busca%";
+}
 
-        if (!empty($busca)) {
-          $sql .= " AND nome_arquivo LIKE :busca";
-          $params[':busca'] = "%$busca%";
-        }
 
         $sql_total = $sql;
         $sql .= " ORDER BY data_upload DESC LIMIT $offset, $registros_por_pagina";
@@ -228,14 +228,23 @@ $registros_por_pagina = 5;
                         <ul class="list-group doc-list">
                             <?php foreach ($documentos as $doc): ?>
                             <li class="list-group-item">
-                                <?php if ($doc['tipo'] === 'arquivo'): ?>
-                                <a href="<?= $doc['caminho'] ?>"
-                                    download><?= htmlspecialchars($doc['nome_arquivo']) ?></a>
-                                <?php else: ?>
-                                <a href="<?= $doc['caminho'] ?>"
-                                    target="_blank"><?= htmlspecialchars($doc['nome_arquivo']) ?></a>
-                                <?php endif; ?>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="<?= $doc['caminho'] ?>" target="_blank" class="text-truncate"
+                                        style="max-width: 85%;">
+                                        <?= htmlspecialchars($doc['titulo'] ?? $doc['nome_arquivo']) ?>
+                                    </a>
+                                    <form action="../controllers/deletar_ato.php" method="POST" class="ms-2"
+                                        onsubmit="return confirm('Deseja mesmo excluir este documento?');">
+                                        <input type="hidden" name="id" value="<?= $doc['id'] ?>">
+                                        <button class="btn btn-sm btn-outline-danger p-1"
+                                            style="width: 30px; height: 30px;">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </li>
+
+
                             <?php endforeach; ?>
                         </ul>
 
@@ -254,14 +263,23 @@ $registros_por_pagina = 5;
                         <form action="../controllers/upload_ato.php" method="POST" enctype="multipart/form-data"
                             class="mt-3">
                             <input type="hidden" name="categoria" value="<?= $categoria ?>">
+
+                            <div class="mb-2">
+                                <input type="text" name="titulo" class="form-control" placeholder="Título do documento"
+                                    required>
+                            </div>
+
                             <div class="mb-2">
                                 <input type="file" name="arquivo" class="form-control">
                             </div>
+
                             <div class="mb-2">
                                 <input type="text" name="link" class="form-control" placeholder="ou cole um link">
                             </div>
+
                             <button type="submit" name="enviar_ato" class="btn btn-primary w-100">Enviar</button>
                         </form>
+
                     </div>
                 </div>
             </div>

@@ -430,7 +430,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <th>Crime</th>
                         <th>Denunciado</th>
                         <th>Vítima</th>
-                        <th>Local do Crime</th>
+                        <th>Local do Fato</th>
                         <th>Sentença</th>
                         <th>Recursos</th>
                         <th>Status</th>
@@ -455,6 +455,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></td>
                         <td><?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></td>
                         <td><?= htmlspecialchars($processo['status'] ?? 'Não informado') ?></td>
+
                         <td>
                             <button class="btn btn-info btn-sm btn-action" data-bs-toggle="modal"
                                 data-bs-target="#modal<?= $processo['id'] ?>">
@@ -473,7 +474,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             </a>
                             <?php endif; ?>
 
-                            <a href="../controllers/gerar_pdf.php?id=<?= $processo['id'] ?>"
+                            <a target="_blank" href="../controllers/gerar_pdf.php?id=<?= $processo['id'] ?>"
                                 class="btn btn-success btn-sm btn-action">
                                 <i class="fas fa-file-pdf"></i> PDF
                             </a>
@@ -499,20 +500,24 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?= !empty($processo['data_denuncia']) ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?>
                                     </p>
                                     <p><strong>Crime:</strong>
-                                        <?= htmlspecialchars($processo['crime'] ?? 'Não informado') ?></p>
+                                        <?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></p>
+
                                     <p><strong>Denunciado:</strong>
                                         <?= htmlspecialchars($processo['denunciado'] ?? 'Não informado') ?></p>
                                     <p><strong>Vítima:</strong> <?= htmlspecialchars($processo['vitima'] ?? 'Não há') ?>
                                     </p>
-                                    <p><strong>Local do Crime:</strong>
-                                        <?= htmlspecialchars(($processo['local_municipio'] ?? 'Não informado') . ' - ' . ($processo['local_bairro'] ?? 'Não informado')) ?>
+                                    <p><strong>Local do Fato:</strong>
+                                        <?= htmlspecialchars(($processo['nome_municipio'] ?? 'Não informado') . ' - ' . ($processo['nome_bairro'] ?? 'Não informado')) ?>
                                     </p>
+
+
                                     <p><strong>Sentença:</strong>
                                         <?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></p>
                                     <p><strong>Recursos:</strong>
                                         <?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></p>
                                     <p><strong>Status:</strong>
                                         <?= htmlspecialchars($processo['status'] ?? 'Não informado') ?></p>
+
                                 </div>
                             </div>
                         </div>
