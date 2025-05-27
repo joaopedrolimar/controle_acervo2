@@ -373,6 +373,31 @@ try {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.getElementById("numero").addEventListener("blur", function() {
+        const numero = this.value;
+
+        if (numero.trim() === "") return;
+
+        fetch("../controllers/verificar_numero_processo.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: `numero=${encodeURIComponent(numero)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.existe) {
+                    alert("Já existe um processo com esse número!");
+                    document.getElementById("numero").value = "";
+                    document.getElementById("numero").focus();
+                }
+            })
+            .catch(error => console.error("Erro ao verificar número:", error));
+    });
+    </script>
+
 </body>
 
 </html>

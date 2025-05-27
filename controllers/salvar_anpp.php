@@ -19,14 +19,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $restituicao = null;
 
         if ($acordo_realizado === "sim") {
-            $valor_reparacao = (isset($_POST['reparacao']) && $_POST['reparacao'] === "sim" && $_POST['valor_reparacao'] !== '')
-                ? floatval($_POST['valor_reparacao']) : null;
+           $valor_reparacao = (isset($_POST['reparacao']) && $_POST['reparacao'] === "sim" && !empty($_POST['valor_reparacao']))
+    ? floatval(str_replace(',', '.', str_replace('.', '', $_POST['valor_reparacao']))) : null;
 
-            $tempo_servico = (isset($_POST['servico_comunitario']) && $_POST['servico_comunitario'] === "sim" && $_POST['tempo_servico'] !== '')
-                ? intval($_POST['tempo_servico']) : null;
 
-            $valor_multa = (isset($_POST['multa']) && $_POST['multa'] === "sim" && $_POST['valor_multa'] !== '')
-                ? floatval($_POST['valor_multa']) : null;
+            $tempo_servico = (isset($_POST['servico_comunitario']) && $_POST['servico_comunitario'] === "sim" && !empty($_POST['tempo_servico']))
+    ? intval($_POST['tempo_servico']) : null;
+
+$valor_multa = (isset($_POST['multa']) && $_POST['multa'] === "sim" && !empty($_POST['valor_multa']))
+    ? floatval(str_replace(',', '.', str_replace('.', '', $_POST['valor_multa']))) : null;
+
 
             $restituicao = !empty($_POST['restituicao']) ? trim($_POST['restituicao']) : null;
         }
