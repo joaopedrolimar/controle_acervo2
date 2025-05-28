@@ -166,7 +166,9 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
             <div class="card p-4 shadow">
                 <div class="mb-3">
                     <label for="numero_inquerito" class="form-label">Número do Inquérito</label>
-                    <input type="text" class="form-control" name="numero_inquerito" required>
+                    <input type="text" class="form-control" name="numero_inquerito" id="numero_inquerito" required>
+                    <small id="numero-feedback" class="form-text text-danger" style="display:none;"></small>
+
                 </div>
                 <div class="mb-3">
                     <label for="indiciado" class="form-label">Indiciado</label>
@@ -250,9 +252,46 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
     }
 
     function toggleInput(select, inputId) {
-        document.getElementById(inputId).style.display = select.value === 'sim' ? 'block' : 'none';
+        const input = document.getElementById(inputId);
+
+        if (select.value === 'sim') {
+            input.style.display = 'block';
+            input.removeAttribute('disabled'); // ⬅️ importante
+        } else {
+            input.style.display = 'none';
+            input.setAttribute('disabled', 'true'); // ⬅️ importante
+            input.value = ''; // limpa o valor
+        }
     }
     </script>
+
+    <script>
+    document.getElementById('numero_inquerito').addEventListener('input', function() {
+        const numero = this.value.trim();
+        const feedback = document.getElementById('numero-feedback');
+
+        if (numero.length < 3) {
+            feedback.style.display = 'none';
+            return;
+        }
+
+        fetch(`../controllers/verificar_numero_anpp.php?numero=${encodeURIComponent(numero)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.existe) {
+                    feedback.innerText = 'Já existe um ANPP com esse número de inquérito.';
+                    feedback.style.display = 'block';
+                } else {
+                    feedback.innerText = '';
+                    feedback.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Erro na verificação:', error);
+            });
+    });
+    </script>
+
 </body>
 
 </html>

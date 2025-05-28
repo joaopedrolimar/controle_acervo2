@@ -4,25 +4,46 @@ session_start();
 require_once "../config/conexao.php";
 global $pdo;
 
-// Verifica se o formulário foi enviado
+// Função para tratar valores monetários do formulário (ex: "1.000,00" -> 1000.00)
+function sanitizar_valor($valor) {
+    $valor = str_replace('.', '', $valor);       // remove separadores de milhar
+    $valor = str_replace(',', '.', $valor);      // troca vírgula por ponto decimal
+    return floatval($valor);
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
-        // Capturar os dados do formulário
         $id = intval($_POST['id']);
         $numero_inquerito = trim($_POST['numero_inquerito']);
         $indiciado = trim($_POST['indiciado']);
         $crime_id = intval($_POST['crime']);
         $nome_vitima = !empty($_POST['nome_vitima']) ? trim($_POST['nome_vitima']) : null;
         $data_audiencia = !empty($_POST['data_audiencia']) ? $_POST['data_audiencia'] : null;
-        $acordo_realizado = isset($_POST['acordo']) && in_array($_POST['acordo'], ['sim', 'nao']) ? $_POST['acordo'] : 'nao';
 
-        // Definir valores padrão para os campos opcionais
-        $valor_reparacao = ($_POST['reparacao'] === "sim") ? floatval($_POST['valor_reparacao']) : null;
-        $tempo_servico = ($_POST['servico_comunitario'] === "sim") ? intval($_POST['tempo_servico']) : null;
-        $valor_multa = ($_POST['multa'] === "sim") ? floatval($_POST['valor_multa']) : null;
-        $restituicao = !empty($_POST['restituicao']) ? trim($_POST['restituicao']) : null;
+        // Ajuste para aceitar valor "realizado"
+        $acordo_realizado = (isset($_POST['acordo']) && $_POST['acordo'] === "realizado") ? "sim" : "nao";
 
-        // Atualizar os dados no banco
+        // Inicializa como null por padrão
+        $valor_reparacao = null;
+        $tempo_servico = null;
+        $valor_multa = null;
+        $restituicao = null;
+
+        // Preenche os campos adicionais apenas se houver acordo realizado
+        if ($acordo_realizado === "sim") {
+            $valor_reparacao = (isset($_POST['reparacao']) && $_POST['reparacao'] === "sim" && !empty($_POST['valor_reparacao']))
+                ? sanitizar_valor($_POST['valor_reparacao']) : null;
+
+            $tempo_servico = (isset($_POST['servico_comunitario']) && $_POST['servico_comunitario'] === "sim" && !empty($_POST['tempo_servico']))
+                ? intval($_POST['tempo_servico']) : null;
+
+            $valor_multa = (isset($_POST['multa']) && $_POST['multa'] === "sim" && !empty($_POST['valor_multa']))
+                ? sanitizar_valor($_POST['valor_multa']) : null;
+
+            $restituicao = !empty($_POST['restituicao']) ? trim($_POST['restituicao']) : null;
+        }
+
+        // Atualização no banco de dados
         $stmt = $pdo->prepare("UPDATE anpp SET 
             numero_inquerito = :numero_inquerito, 
             indiciado = :indiciado, 
@@ -36,7 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             restituicao = :restituicao 
             WHERE id = :id");
 
-        // Bind dos valores
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->bindParam(':numero_inquerito', $numero_inquerito, PDO::PARAM_STR);
         $stmt->bindParam(':indiciado', $indiciado, PDO::PARAM_STR);
@@ -44,12 +64,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bindParam(':nome_vitima', $nome_vitima, PDO::PARAM_STR);
         $stmt->bindParam(':data_audiencia', $data_audiencia, PDO::PARAM_STR);
         $stmt->bindParam(':acordo_realizado', $acordo_realizado, PDO::PARAM_STR);
-        $stmt->bindParam(':valor_reparacao', $valor_reparacao, PDO::PARAM_STR);
-        $stmt->bindParam(':tempo_servico', $tempo_servico, PDO::PARAM_INT);
-        $stmt->bindParam(':valor_multa', $valor_multa, PDO::PARAM_STR);
+        $stmt->bindParam(':valor_reparacao', $valor_reparacao);
+        $stmt->bindParam(':tempo_servico', $tempo_servico);
+        $stmt->bindParam(':valor_multa', $valor_multa);
         $stmt->bindParam(':restituicao', $restituicao, PDO::PARAM_STR);
 
-        // Executar a atualização
+        // Executa a atualização
         if ($stmt->execute()) {
             $_SESSION['mensagem'] = "ANPP atualizado com sucesso!";
             header("Location: ../views/listar_anpp.php");
