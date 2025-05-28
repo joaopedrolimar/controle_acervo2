@@ -2,7 +2,7 @@
 $host = "localhost";
 $dbname = "controle_acervo";
 $user = "root";
-$password = "";
+$password = "root";
 
 try {
     // Criando conexão com PDO
@@ -11,4 +11,4 @@ try {
 } catch (PDOException $e) {
     die("Erro na conexão: " . $e->getMessage());
 }
-?>
+?> 
