@@ -446,6 +446,16 @@ $totalPaginas = ceil($total / $porPagina);
                 <?php endfor; ?>
             </ul>
         </nav>
+
+
+
+<div class="text-center mt-3 mb-5 text-muted">
+    Página <?= $paginaAtual ?> de <?= $totalPaginas ?>,
+    <?= count($anpps) ?> registro<?= count($anpps) != 1 ? 's' : '' ?> nesta página de um total de <?= $total ?> registros.
+</div>
+
+
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

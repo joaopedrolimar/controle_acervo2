@@ -540,6 +540,12 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endfor; ?>
         </ul>
     </nav>
+
+<div class="text-center mt-3 mb-5 text-muted">
+    Página <?= $pagina_atual ?> de <?= $total_paginas ?>, 
+    <?= count($processos) ?> registros nesta página de um total de <?= $total_registros ?> registros.
+</div>
+
     </div>
 
 

@@ -114,7 +114,8 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
                     </div>
                     <div class="mb-3">
                         <label for="restituicao" class="form-label">Restituição da Coisa à Vítima</label>
-                        <input type="text" class="form-control" name="restituicao" value="<?= htmlspecialchars($anpp['restituicao']) ?>">
+                       <input type="text" class="form-control" name="restituicao" value="<?= htmlspecialchars($anpp['restituicao'] ?? '') ?>">
+
                     </div>
                 </div>
 
