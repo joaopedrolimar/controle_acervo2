@@ -18,10 +18,22 @@ $perfil = $_SESSION['usuario_perfil'] ?? '';
 $pagina_atual = basename($_SERVER['PHP_SELF']);
 
 // Contagem de processos por status
-$sql_cadastrados = "SELECT COUNT(*) FROM processos WHERE status = 'Cadastrado'";
+$sql_ativos = "SELECT COUNT(*) FROM processos WHERE status = 'Ativo'";
 $sql_finalizados = "SELECT COUNT(*) FROM processos WHERE status = 'Finalizado'";
-$cadastrados = $pdo->query($sql_cadastrados)->fetchColumn();
+$ativos = $pdo->query($sql_ativos)->fetchColumn();
 $finalizados = $pdo->query($sql_finalizados)->fetchColumn();
+
+// Gráfico por crime
+$crimes = $pdo->query("SELECT crimes.nome, COUNT(*) as total FROM processos LEFT JOIN crimes ON processos.crime_id = crimes.id GROUP BY crimes.nome ORDER BY total DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Gráfico por município
+$municipios = $pdo->query("SELECT municipios.nome, COUNT(*) as total FROM processos LEFT JOIN municipios ON processos.local_municipio = municipios.id GROUP BY municipios.nome ORDER BY total DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Gráfico de processos ativos por mês (últimos 6 meses)
+$meses = $pdo->query("SELECT DATE_FORMAT(data_denuncia, '%m/%Y') as mes, COUNT(*) as total FROM processos WHERE status = 'Ativo' AND data_denuncia >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY mes ORDER BY data_denuncia")->fetchAll(PDO::FETCH_ASSOC);
+
+// Top 5 bairros com mais processos
+$bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LEFT JOIN bairros ON processos.local_bairro = bairros.id GROUP BY bairros.nome ORDER BY total DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
 
 
 ?>
@@ -65,6 +77,7 @@ $finalizados = $pdo->query($sql_finalizados)->fetchColumn();
         border-radius: 15px;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         padding: 10px;
+        margin-bottom: 40px;
     }
     </style>
 </head>
@@ -176,6 +189,18 @@ $finalizados = $pdo->query($sql_finalizados)->fetchColumn();
             <div style="max-width: 400px; width: 100%;">
                 <canvas id="graficoStatus"></canvas>
             </div>
+             <div class="col-md-6">
+                <canvas id="graficoCrimes"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="graficoMunicipios"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="graficoMeses"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="graficoBairros"></canvas>
+            </div>
         </div>
 
 
@@ -189,10 +214,10 @@ $finalizados = $pdo->query($sql_finalizados)->fetchColumn();
     const graficoStatus = new Chart(ctxStatus, {
         type: 'pie',
         data: {
-            labels: ['Cadastrado', 'Finalizado'],
+            labels: ['Ativo', 'Finalizado'],
             datasets: [{
-                data: [<?= $cadastrados ?>, <?= $finalizados ?>],
-                backgroundColor: ['#ffc107', '#198754'], // amarelo e verde
+                data: [<?= $ativos ?>, <?= $finalizados ?>],
+                backgroundColor: ['#0d6efd', '#198754'], // amarelo e verde
                 borderWidth: 1
             }]
         },
@@ -205,6 +230,58 @@ $finalizados = $pdo->query($sql_finalizados)->fetchColumn();
             }
         }
     });
+
+
+        new Chart(document.getElementById('graficoCrimes'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode(array_column($crimes, 'nome')) ?>,
+                datasets: [{
+                    label: 'Processos por Crime',
+                    data: <?= json_encode(array_column($crimes, 'total')) ?>,
+                    backgroundColor: '#0d6efd'
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('graficoMunicipios'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode(array_column($municipios, 'nome')) ?>,
+                datasets: [{
+                    label: 'Processos por Município',
+                    data: <?= json_encode(array_column($municipios, 'total')) ?>,
+                    backgroundColor: '#6610f2'
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('graficoMeses'), {
+            type: 'line',
+            data: {
+                labels: <?= json_encode(array_column($meses, 'mes')) ?>,
+                datasets: [{
+                    label: 'Processos Ativos por Mês',
+                    data: <?= json_encode(array_column($meses, 'total')) ?>,
+                    backgroundColor: 'rgba(25,135,84,0.2)',
+                    borderColor: '#198754',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            }
+        });
+
+        new Chart(document.getElementById('graficoBairros'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode(array_column($bairros, 'nome')) ?>,
+                datasets: [{
+                    label: 'Top 5 Bairros com Mais Processos',
+                    data: <?= json_encode(array_column($bairros, 'total')) ?>,
+                    backgroundColor: '#fd7e14'
+                }]
+            }
+        });
     </script>
 
 

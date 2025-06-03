@@ -258,8 +258,29 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
 
                         <td><?= htmlspecialchars($log['tabela_afetada']) ?></td>
                         <td><?= htmlspecialchars($log['registro_id']) ?></td>
-                        <td><?= nl2br(htmlspecialchars($log['valores_anteriores'] ?? 'N/A')) ?></td>
-                        <td><?= nl2br(htmlspecialchars($log['valores_novos'] ?? 'N/A')) ?></td>
+                        <td>
+    <?php if ($valores_anteriores): ?>
+        <ul class="mb-0">
+            <?php foreach ($valores_anteriores as $chave => $valor): ?>
+                <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valor) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php else: ?>
+        N/A
+    <?php endif; ?>
+</td>
+<td>
+    <?php if ($valores_novos): ?>
+        <ul class="mb-0">
+            <?php foreach ($valores_novos as $chave => $valor): ?>
+                <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valor) ?></li>
+            <?php endforeach; ?>
+        </ul>
+    <?php else: ?>
+        N/A
+    <?php endif; ?>
+</td>
+
                         <td><?= date("d/m/Y H:i:s", strtotime($log['data_hora'])) ?></td>
                     </tr>
                     <?php endforeach; ?>

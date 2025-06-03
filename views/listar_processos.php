@@ -482,6 +482,17 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </td>
                     </tr>
 
+                    <!-- Calcula tempo de vida  do Processo -->
+                    <?php
+                    $dias_ativo = '';
+                    if (!empty($processo['data_denuncia']) && $processo['status'] === 'Ativo') {
+                        $data_denuncia = new DateTime($processo['data_denuncia']);
+                        $hoje = new DateTime();
+                        $dias = $data_denuncia->diff($hoje)->days;
+                        $dias_ativo = "$dias dias em Ativo";
+                    }
+                    ?>
+
                     <!-- Modal para Exibir Detalhes do Processo -->
                     <div class="modal fade" id="modal<?= $processo['id'] ?>" tabindex="-1"
                         aria-labelledby="modalLabel<?= $processo['id'] ?>" aria-hidden="true">
@@ -517,6 +528,10 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></p>
                                     <p><strong>Status:</strong>
                                         <?= htmlspecialchars($processo['status'] ?? 'Não informado') ?></p>
+                                        <?php if (!empty($dias_ativo)): ?>
+                                <p><strong>Tempo no status Ativo:</strong> <?= $dias_ativo ?></p>
+                            <?php endif; ?>
+
 
                                 </div>
                             </div>
