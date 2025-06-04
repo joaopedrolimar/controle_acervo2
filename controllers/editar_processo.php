@@ -20,22 +20,18 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id = $_GET['id'];
 
     try {
-        // Buscar todos os crimes disponíveis
         $stmt_crimes = $pdo->prepare("SELECT id, nome FROM crimes");
         $stmt_crimes->execute();
         $crimes = $stmt_crimes->fetchAll(PDO::FETCH_ASSOC);
 
-        // Buscar todos os municípios disponíveis
         $stmt_municipios = $pdo->prepare("SELECT id, nome FROM municipios");
         $stmt_municipios->execute();
         $municipios = $stmt_municipios->fetchAll(PDO::FETCH_ASSOC);
 
-        // Buscar todos os bairros disponíveis
         $stmt_bairros = $pdo->prepare("SELECT id, nome, municipio_id FROM bairros");
         $stmt_bairros->execute();
         $bairros = $stmt_bairros->fetchAll(PDO::FETCH_ASSOC);
 
-        // Criar um array associativo de bairros agrupados por município
         $bairrosPorMunicipio = [];
         foreach ($bairros as $bairro) {
             $bairrosPorMunicipio[$bairro['municipio_id']][] = [
@@ -44,18 +40,17 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
             ];
         }
 
-        // Buscar os dados do processo com JOIN correto
         $stmt = $pdo->prepare("
-            SELECT processos.*, 
-                   crimes.id AS crime_id, crimes.nome AS nome_crime,
-                   municipios.id AS municipio_id, municipios.nome AS nome_municipio,
-                   bairros.id AS bairro_id, bairros.nome AS nome_bairro
-            FROM processos 
-            LEFT JOIN crimes ON processos.crime_id = crimes.id
-            LEFT JOIN municipios ON processos.local_municipio = municipios.id
-            LEFT JOIN bairros ON processos.local_bairro = bairros.id
-            WHERE processos.id = :id
-        ");
+    SELECT processos.*, 
+           crimes.id AS crime_id, crimes.nome AS nome_crime,
+           municipios.id AS municipio_id, municipios.nome AS nome_municipio,
+           bairros.id AS bairro_id, bairros.nome AS nome_bairro
+    FROM processos 
+    LEFT JOIN crimes ON processos.crime_id = crimes.id
+    LEFT JOIN municipios ON processos.local_municipio = municipios.id
+    LEFT JOIN bairros ON processos.local_bairro = bairros.id
+    WHERE processos.id = :id
+");
 
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -77,75 +72,83 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     exit();
 }
 
-// Atualizar o processo se o formulário for enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
-    $numero = trim($_POST['numero']);
-    $natureza = trim($_POST['natureza']);
-    $outra_natureza = !empty($_POST['outra_natureza']) ? $_POST['outra_natureza'] : null;
-    $data_denuncia = $_POST['data_denuncia'];
-    $crime_id = ($_POST['crime'] !== "Outro") ? intval($_POST['crime']) : null;
-    $outro_crime = !empty($_POST['outro_crime']) ? $_POST['outro_crime'] : null;
-    $denunciado = trim($_POST['denunciado']);
-    $vitima = !empty($_POST['vitima']) ? $_POST['vitima'] : null;
-    $municipio_id = !empty($_POST['local_municipio']) ? intval($_POST['local_municipio']) : null;
-    $bairro_id = !empty($_POST['local_bairro']) ? intval($_POST['local_bairro']) : null;
-    $sentenca = trim($_POST['sentenca']);
-    $outra_sentenca = !empty($_POST['outra_sentenca']) ? $_POST['outra_sentenca'] : null;
-    $data_sentenca = !empty($_POST['data_sentenca']) ? $_POST['data_sentenca'] : null;
-    $recursos = trim($_POST['recursos']);
-    $status = $_POST['status'];
+    $novo = [
+        'numero' => trim($_POST['numero']),
+        'natureza' => trim($_POST['natureza']),
+        'outra_natureza' => $_POST['outra_natureza'] ?? null,
+        'data_denuncia' => $_POST['data_denuncia'],
+        'crime_id' => ($_POST['crime'] !== "Outro") ? intval($_POST['crime']) : null,
+        'outro_crime' => $_POST['outro_crime'] ?? null,
+        'denunciado' => trim($_POST['denunciado']),
+        'vitima' => $_POST['vitima'] ?? null,
+        'local_municipio' => $_POST['local_municipio'],
+        'local_bairro' => $_POST['local_bairro'],
+        'sentenca' => $_POST['sentenca'],
+        'outra_sentenca' => $_POST['outra_sentenca'] ?? null,
+        'data_sentenca' => $_POST['data_sentenca'] ?? null,
+        'recursos' => $_POST['recursos'],
+        'status' => $_POST['status']
+    ];
+
+    $valores_anteriores = [];
+    $valores_novos = [];
+
+    foreach ($novo as $campo => $valor_novo) {
+        $valor_antigo = $processo[$campo] ?? null;
+        if ($valor_novo != $valor_antigo) {
+            $valores_anteriores[$campo] = $valor_antigo;
+            $valores_novos[$campo] = $valor_novo;
+        }
+    }
 
     try {
-        // Atualiza o processo no banco
         $sql = "UPDATE processos SET 
-                numero = :numero, 
-                natureza = :natureza,
-                outra_natureza = :outra_natureza,
-                data_denuncia = :data_denuncia, 
-                crime_id = :crime_id, 
-                outro_crime = :outro_crime,
-                denunciado = :denunciado, 
-                vitima = :vitima,
-                local_municipio = :municipio_id,
-                local_bairro = :bairro_id,
-                sentenca = :sentenca,
-                outra_sentenca = :outra_sentenca,
-                data_sentenca = :data_sentenca,
-                recursos = :recursos,
-                status = :status
+                numero = :numero, natureza = :natureza, outra_natureza = :outra_natureza, data_denuncia = :data_denuncia, 
+                crime_id = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima, 
+                local_municipio = :municipio_id, local_bairro = :bairro_id, sentenca = :sentenca, 
+                outra_sentenca = :outra_sentenca, data_sentenca = :data_sentenca, recursos = :recursos, status = :status 
                 WHERE id = :id";
 
         $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':numero', $numero);
-        $stmt->bindParam(':natureza', $natureza);
-        $stmt->bindParam(':outra_natureza', $outra_natureza);
-        $stmt->bindParam(':data_denuncia', $data_denuncia);
-        $stmt->bindParam(':crime_id', $crime_id, PDO::PARAM_INT);
-        $stmt->bindParam(':outro_crime', $outro_crime);
-        $stmt->bindParam(':denunciado', $denunciado);
-        $stmt->bindParam(':vitima', $vitima);
-        $stmt->bindParam(':municipio_id', $municipio_id, PDO::PARAM_INT);
-        $stmt->bindParam(':bairro_id', $bairro_id, PDO::PARAM_INT);
-        $stmt->bindParam(':sentenca', $sentenca);
-        $stmt->bindParam(':outra_sentenca', $outra_sentenca);
-        $stmt->bindParam(':data_sentenca', $data_sentenca);
-        $stmt->bindParam(':recursos', $recursos);
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute([
+            ':numero' => $novo['numero'],
+            ':natureza' => $novo['natureza'],
+            ':outra_natureza' => $novo['outra_natureza'],
+            ':data_denuncia' => $novo['data_denuncia'],
+            ':crime_id' => $novo['crime_id'],
+            ':outro_crime' => $novo['outro_crime'],
+            ':denunciado' => $novo['denunciado'],
+            ':vitima' => $novo['vitima'],
+            ':municipio_id' => $novo['local_municipio'],
+            ':bairro_id' => $novo['local_bairro'],
+            ':sentenca' => $novo['sentenca'],
+            ':outra_sentenca' => $novo['outra_sentenca'],
+            ':data_sentenca' => $novo['data_sentenca'],
+            ':recursos' => $novo['recursos'],
+            ':status' => $novo['status'],
+            ':id' => $id
+        ]);
 
-        if ($stmt->execute()) {
-            $_SESSION['mensagem'] = "Processo atualizado com sucesso!";
-        } else {
-            $_SESSION['mensagem'] = "Erro ao atualizar o processo.";
+        if (!empty($valores_anteriores)) {
+            registrar_log(
+                $_SESSION['usuario_id'],
+                "Editou um processo",
+                "processos",
+                $id,
+                json_encode($valores_anteriores, JSON_UNESCAPED_UNICODE),
+                json_encode($valores_novos, JSON_UNESCAPED_UNICODE)
+            );
         }
+
+        $_SESSION['mensagem'] = "Processo atualizado com sucesso!";
     } catch (PDOException $e) {
-        $_SESSION['mensagem'] = "Erro no banco: " . $e->getMessage();
+        $_SESSION['mensagem'] = "Erro ao atualizar: " . $e->getMessage();
     }
 
     header("Location: ../views/listar_processos.php");
     exit();
 }
-
 
 ?>
 
