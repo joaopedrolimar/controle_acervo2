@@ -258,29 +258,44 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
 
                         <td><?= htmlspecialchars($log['tabela_afetada']) ?></td>
                         <td><?= htmlspecialchars($log['registro_id']) ?></td>
-                        <td>
-    <?php if ($valores_anteriores): ?>
-        <ul class="mb-0">
-            <?php foreach ($valores_anteriores as $chave => $valor): ?>
-                <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valor) ?></li>
-            <?php endforeach; ?>
-        </ul>
-    <?php else: ?>
-        N/A
-    <?php endif; ?>
-</td>
 <td>
-    <?php if ($valores_novos): ?>
-        <ul class="mb-0">
-            <?php foreach ($valores_novos as $chave => $valor): ?>
-                <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valor) ?></li>
-            <?php endforeach; ?>
-        </ul>
-    <?php else: ?>
-        N/A
-    <?php endif; ?>
-</td>
-
+                            <?php if ($valores_anteriores): ?><ul class="mb-0">
+                                <?php foreach ($valores_anteriores as $chave => $valor): ?>
+                                    <?php
+                                        $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
+                                        if (is_null($valor) || $valor === '') {
+                                            $valorFormatado = 'Não há';
+                                        } elseif ($formatarMoeda && is_numeric($valor)) {
+                                            $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
+                                        } elseif ($chave === 'tempo_servico' && is_numeric($valor)) {
+                                            $valorFormatado = $valor . ' horas';
+                                        } else {
+                                            $valorFormatado = $valor;
+                                        }
+                                    ?>
+                                    <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valorFormatado) ?></li>
+                                <?php endforeach; ?>
+                            </ul><?php else: ?>N/A<?php endif; ?>
+                        </td>
+                        <td>
+                            <?php if ($valores_novos): ?><ul class="mb-0">
+                                <?php foreach ($valores_novos as $chave => $valor): ?>
+                                    <?php
+                                        $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
+                                        if (is_null($valor) || $valor === '') {
+                                            $valorFormatado = 'Não há';
+                                        } elseif ($formatarMoeda && is_numeric($valor)) {
+                                            $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
+                                        } elseif ($chave === 'tempo_servico' && is_numeric($valor)) {
+                                            $valorFormatado = $valor . ' horas';
+                                        } else {
+                                            $valorFormatado = $valor;
+                                        }
+                                    ?>
+                                    <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valorFormatado) ?></li>
+                                <?php endforeach; ?>
+                            </ul><?php else: ?>N/A<?php endif; ?>
+                        </td>
                         <td><?= date("d/m/Y H:i:s", strtotime($log['data_hora'])) ?></td>
                     </tr>
                     <?php endforeach; ?>

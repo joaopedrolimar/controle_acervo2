@@ -72,13 +72,14 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
         }
     }
 
-    canvas {
-        background-color: #fff;
-        border-radius: 15px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        padding: 10px;
-        margin-bottom: 40px;
-    }
+   .card {
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            font-weight: 600;
+        }
+    </style
     </style>
 </head>
 
@@ -181,27 +182,61 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
 
 
 
-    <div class="container mt-4">
+   <div class="container mt-4">
         <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
-
-        <div class="container d-flex flex-column align-items-center mt-5">
-            <h2 class="text-center mb-4"><i class="fas fa-chart-pie"></i> Situação dos Processos</h2>
-            <div style="max-width: 400px; width: 100%;">
-                <canvas id="graficoStatus"></canvas>
+        <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-chart-pie"></i> Situação dos Processos
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoStatus"></canvas>
+                    </div>
+                </div>
             </div>
-             <div class="col-md-6">
-                <canvas id="graficoCrimes"></canvas>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <i class="fas fa-balance-scale"></i> Processos por Crime
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoCrimes"></canvas>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                <canvas id="graficoMunicipios"></canvas>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-map-marker-alt"></i> Processos por Município
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoMunicipios"></canvas>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                <canvas id="graficoMeses"></canvas>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-calendar-alt"></i> Processos Ativos por Mês
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoMeses"></canvas>
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                <canvas id="graficoBairros"></canvas>
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="fas fa-map"></i> Top 5 Bairros com Mais Processos
+                    </div>
+                    <div class="card-body">
+                        <canvas id="graficoBairros"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
 
 
@@ -210,29 +245,27 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
-    const graficoStatus = new Chart(ctxStatus, {
-        type: 'pie',
-        data: {
-            labels: ['Ativo', 'Finalizado'],
-            datasets: [{
-                data: [<?= $ativos ?>, <?= $finalizados ?>],
-                backgroundColor: ['#0d6efd', '#198754'], // amarelo e verde
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+        const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+        new Chart(ctxStatus, {
+            type: 'pie',
+            data: {
+                labels: ['Ativo', 'Finalizado'],
+                datasets: [{
+                    data: [<?= $ativos ?>, <?= $finalizados ?>],
+                    backgroundColor: ['#0d6efd', '#198754'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
                 }
             }
-        }
-    });
+        });
 
 
-        new Chart(document.getElementById('graficoCrimes'), {
+       new Chart(document.getElementById('graficoCrimes'), {
             type: 'bar',
             data: {
                 labels: <?= json_encode(array_column($crimes, 'nome')) ?>,

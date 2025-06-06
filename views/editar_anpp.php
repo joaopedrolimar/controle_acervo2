@@ -1,16 +1,13 @@
-<!--editar_anpp.php-->
 <?php
 session_start();
 require_once "../config/conexao.php";
 global $pdo;
 
-// Verifica se o usuário está logado
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Verifica se foi passado um ID pela URL
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     $_SESSION['mensagem'] = "ID do ANPP inválido!";
     header("Location: listar_anpp.php");
@@ -19,7 +16,6 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id = $_GET['id'];
 
-// Busca os dados do ANPP pelo ID
 $stmt = $pdo->prepare("SELECT * FROM anpp WHERE id = :id");
 $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 $stmt->execute();
@@ -32,6 +28,11 @@ if (!$anpp) {
 }
 
 $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Formatar valores monetários
+function formatar_moeda($valor) {
+    return number_format($valor, 2, ',', '.');
+}
 ?>
 
 <!DOCTYPE html>
@@ -94,7 +95,9 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
                             <option value="nao">Não</option>
                             <option value="sim" <?= $anpp['valor_reparacao'] ? 'selected' : '' ?>>Sim</option>
                         </select>
-                        <input type="text" class="form-control mt-2" name="valor_reparacao" id="valor_reparacao" value="<?= $anpp['valor_reparacao'] ?>" style="display: none;">
+                        <input type="text" class="form-control mt-2" name="valor_reparacao" id="valor_reparacao"
+                            value="<?= $anpp['valor_reparacao'] !== null ? formatar_moeda($anpp['valor_reparacao']) : '' ?>"
+                            style="display: none;">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Prestação de Serviço Comunitário</label>
@@ -110,12 +113,13 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
                             <option value="nao">Não</option>
                             <option value="sim" <?= $anpp['valor_multa'] ? 'selected' : '' ?>>Sim</option>
                         </select>
-                        <input type="text" class="form-control mt-2" name="valor_multa" id="valor_multa" value="<?= $anpp['valor_multa'] ?>" style="display: none;">
+                        <input type="text" class="form-control mt-2" name="valor_multa" id="valor_multa"
+                            value="<?= $anpp['valor_multa'] !== null ? formatar_moeda($anpp['valor_multa']) : '' ?>"
+                            style="display: none;">
                     </div>
                     <div class="mb-3">
                         <label for="restituicao" class="form-label">Restituição da Coisa à Vítima</label>
-                       <input type="text" class="form-control" name="restituicao" value="<?= htmlspecialchars($anpp['restituicao'] ?? '') ?>">
-
+                        <input type="text" class="form-control" name="restituicao" value="<?= htmlspecialchars($anpp['restituicao'] ?? '') ?>">
                     </div>
                 </div>
 
@@ -124,6 +128,9 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
             </div>
         </form>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 
     <script>
         function mostrarCampos(ativo) {
@@ -147,12 +154,16 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
             if (acordoSim && acordoSim.checked) {
                 mostrarCampos(true);
             }
+
             toggleInput(document.getElementById('reparacao'), 'valor_reparacao');
             toggleInput(document.getElementById('servico_comunitario'), 'tempo_servico');
             toggleInput(document.getElementById('multa'), 'valor_multa');
+
+            // Máscaras de moeda
+            $('#valor_reparacao').mask('#.##0,00', {reverse: true});
+            $('#valor_multa').mask('#.##0,00', {reverse: true});
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
