@@ -6,7 +6,6 @@ require_once "../config/conexao.php";
 global $pdo;
 
 $perfil = $_SESSION['usuario_perfil'] ?? '';
-
 $pagina_atual = basename($_SERVER['PHP_SELF']);
 
 // Verifica se o usuário está logado
@@ -15,12 +14,17 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// Verifica se o usuário é administrador
-if ($_SESSION['usuario_perfil'] !== 'administrador') {
-    $_SESSION['mensagens'][] = "Acesso negado! Apenas administradores podem acessar esta página.";
+// Verifica se o usuário tem permissão para acessar o Cadastro Básico
+$perfis_autorizados = ['administrador', 'consultor', 'cadastrador_consulta'];
+if (!in_array($perfil, $perfis_autorizados)) {
+    $_SESSION['mensagens'][] = "Acesso negado! Você não tem permissão para acessar esta página.";
     header("Location: dashboard.php");
     exit();
 }
+
+// ✅ Agora sim: inicia mensagens depois da verificação
+$_SESSION['mensagens'] = $_SESSION['mensagens'] ?? [];
+
 
 // Array para armazenar mensagens de erro/sucesso
 $_SESSION['mensagens'] = $_SESSION['mensagens'] ?? [];
@@ -121,350 +125,347 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
 <html lang="pt">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro Básico</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Cadastro Básico</title>
+ <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <style>
-    /* Ajuste da logo na navbar */
-    .logo-navbar {
-        max-width: 300px;
-        /* Define um tamanho máximo */
-        height: auto;
-        /* Mantém a proporção correta */
-    }
+ <style>
+ /* Ajuste da logo na navbar */
+ .logo-navbar {
+  max-width: 300px;
+  /* Define um tamanho máximo */
+  height: auto;
+  /* Mantém a proporção correta */
+ }
 
-    /* Ajuste para telas menores */
-    @media (max-width: 576px) {
-        .logo-navbar {
-            max-width: 250px;
-            /* Reduz a logo para melhor encaixe */
-            display: block;
-            /* Evita que fique desalinhada */
-            margin: auto;
-            /* Centraliza no mobile */
-        }
-    }
-    </style>
+ /* Ajuste para telas menores */
+ @media (max-width: 576px) {
+  .logo-navbar {
+   max-width: 250px;
+   /* Reduz a logo para melhor encaixe */
+   display: block;
+   /* Evita que fique desalinhada */
+   margin: auto;
+   /* Centraliza no mobile */
+  }
+ }
+ </style>
 
 </head>
 
 <body class="bg-light">
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
-                <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
-            </a>
+ <!-- Navbar -->
+ <!-- Navbar -->
+ <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #900020;">
+  <div class="container">
+   <a class="navbar-brand d-flex align-items-center" href="dashboard.php">
+    <img src="../public/img/logoWhite.png" alt="Logo" class="logo-navbar">
+   </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <span class="navbar-toggler-icon"></span>
+   </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+   <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>"
-                            href="dashboard.php">
-                            <i class="fas fa-home"></i> Início
-                        </a>
-                    </li>
+     <!-- Início: todos -->
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>" href="dashboard.php">
+       <i class="fas fa-home"></i> Início
+      </a>
+     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>"
-                            href="listar_processos.php">
-                            <i class="fas fa-list"></i> Listar Processos
-                        </a>
-                    </li>
+     <!-- Listar Processos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
+       <i class="fas fa-list"></i> Listar Processos
+      </a>
+     </li>
+     <?php endif; ?>
 
-                    <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
-                            href="cadastro_processo.php">
-                            <i class="fas fa-plus"></i> Cadastrar Processos
-                        </a>
-                    </li>
-                    <?php endif; ?>
+     <!-- Cadastrar Processos -->
+     <?php if (in_array($perfil, ['administrador', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
+       href="cadastro_processo.php">
+       <i class="fas fa-plus"></i> Cadastrar Processos
+      </a>
+     </li>
+     <?php endif; ?>
 
-                    <!-- Novos itens de ANPP -->
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>"
-                            href="listar_anpp.php">
-                            <i class="fas fa-scale-balanced"></i> Listagem de ANPPs
-                        </a>
-                    </li>
+     <!-- Listagem ANPP -->
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>" href="listar_anpp.php">
+       <i class="fas fa-scale-balanced"></i> Listagem de ANPPs
+      </a>
+     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
-                            <i class="fas fa-file-circle-plus"></i> Cadastrar ANPP
-                        </a>
-                    </li>
-                    <!-- Fim dos itens de ANPP -->
+     <!-- Cadastrar ANPP -->
+     <?php if (in_array($perfil, ['administrador', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
+       <i class="fas fa-file-circle-plus"></i> Cadastrar ANPP
+      </a>
+     </li>
+     <?php endif; ?>
 
-                    <?php if ($perfil === 'administrador'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>"
-                            href="gerenciar_usuarios.php">
-                            <i class="fas fa-users-cog"></i> Gerenciar Usuários
-                        </a>
-                    </li>
+     <!-- Gerenciar Usuários -->
+     <?php if (in_array($perfil, ['administrador', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>"
+       href="gerenciar_usuarios.php">
+       <i class="fas fa-users-cog"></i> Gerenciar Usuários
+      </a>
+     </li>
+     <?php endif; ?>
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
-                            <i class="fas fa-file-alt"></i> Atos
-                        </a>
-                    </li>
+     <!-- Atos: todos -->
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
+       <i class="fas fa-file-alt"></i> Atos
+      </a>
+     </li>
 
+     <!-- Log de Atividades -->
+     <?php if ($perfil === 'administrador'): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
+       <i class="fas fa-history"></i> Log de Atividades
+      </a>
+     </li>
+     <?php endif; ?>
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
-                            href="log_atividades.php">
-                            <i class="fas fa-history"></i> Log de Atividades
-                        </a>
-                    </li>
+     <!-- Cadastro Básico -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>" href="cadastro_basico.php">
+       <i class="fas fa-address-book"></i> Cadastro Básico
+      </a>
+     </li>
+     <?php endif; ?>
 
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
-                            href="cadastro_basico.php">
-                            <i class="fas fa-address-book"></i> Cadastro Básico
-                        </a>
-                    </li>
-                    <?php endif; ?>
+     <!-- Sair: todos -->
+     <li class="nav-item">
+      <a class="nav-link text-white" href="../controllers/logout.php">
+       <i class="fas fa-sign-out-alt"></i> Sair
+      </a>
+     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="../controllers/logout.php">
-                            <i class="fas fa-sign-out-alt"></i> Sair
-                        </a>
-                    </li>
+    </ul>
+   </div>
+  </div>
+ </nav>
+ <!-- Conteúdo Principal -->
+ <div class="container mt-5">
+  <h2 class="text-center"><i class="fas fa-address-book"></i> Cadastro Básico</h2>
+  <div class="row">
+   <!-- Formulários -->
+   <div class="col-md-4">
+    <div class="card shadow">
+     <div class="card-header bg-primary text-white text-center">
+      <h5>Adicionar Cadastro</h5>
+     </div>
+     <div class="card-body">
+      <?php if (!empty($_SESSION['mensagens'])): ?>
+      <div class="alert alert-info">
+       <ul>
+        <?php foreach ($_SESSION['mensagens'] as $mensagem): ?>
+        <li><?= $mensagem; ?></li>
+        <?php endforeach; ?>
+       </ul>
+      </div>
+      <?php unset($_SESSION['mensagens']); ?>
+      <?php endif; ?>
 
-                </ul>
-            </div>
-        </div>
-    </nav>
+      <form action="" method="POST">
+       <h6>Município</h6>
+       <div class="input-group mb-3">
+        <input type="text" class="form-control" name="novo_municipio" placeholder="Digite o nome do município" required>
+        <button type="submit" class="btn btn-success" name="add_municipio"><i class="fas fa-plus"></i></button>
+       </div>
+      </form>
 
+      <form action="" method="POST">
+       <h6>Bairro</h6>
+       <select class="form-control mb-2" name="municipio_id" required>
+        <option value="">Selecione um Município</option>
+        <?php foreach ($municipios as $municipio): ?>
+        <option value="<?= $municipio['id'] ?>"><?= htmlspecialchars($municipio['nome']) ?>
+        </option>
+        <?php endforeach; ?>
+       </select>
+       <div class="input-group mb-3">
+        <input type="text" class="form-control" name="novo_bairro" placeholder="Digite o nome do bairro" required>
+        <button type="submit" class="btn btn-success" name="add_bairro"><i class="fas fa-plus"></i></button>
+       </div>
+      </form>
 
-    <!-- Conteúdo Principal -->
-    <div class="container mt-5">
-        <h2 class="text-center"><i class="fas fa-address-book"></i> Cadastro Básico</h2>
-        <div class="row">
-            <!-- Formulários -->
-            <div class="col-md-4">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h5>Adicionar Cadastro</h5>
-                    </div>
-                    <div class="card-body">
-                        <?php if (!empty($_SESSION['mensagens'])): ?>
-                        <div class="alert alert-info">
-                            <ul>
-                                <?php foreach ($_SESSION['mensagens'] as $mensagem): ?>
-                                <li><?= $mensagem; ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                        <?php unset($_SESSION['mensagens']); ?>
-                        <?php endif; ?>
+      <form action="" method="POST">
+       <h6>Crimes Gerais</h6>
+       <div class="input-group mb-3">
+        <input type="text" class="form-control" name="novo_crime" placeholder="Digite o nome do crime" required>
+        <button type="submit" class="btn btn-success" name="add_crime"><i class="fas fa-plus"></i></button>
+       </div>
+      </form>
 
-                        <form action="" method="POST">
-                            <h6>Município</h6>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" name="novo_municipio"
-                                    placeholder="Digite o nome do município" required>
-                                <button type="submit" class="btn btn-success" name="add_municipio"><i
-                                        class="fas fa-plus"></i></button>
-                            </div>
-                        </form>
-
-                        <form action="" method="POST">
-                            <h6>Bairro</h6>
-                            <select class="form-control mb-2" name="municipio_id" required>
-                                <option value="">Selecione um Município</option>
-                                <?php foreach ($municipios as $municipio): ?>
-                                <option value="<?= $municipio['id'] ?>"><?= htmlspecialchars($municipio['nome']) ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" name="novo_bairro"
-                                    placeholder="Digite o nome do bairro" required>
-                                <button type="submit" class="btn btn-success" name="add_bairro"><i
-                                        class="fas fa-plus"></i></button>
-                            </div>
-                        </form>
-
-                        <form action="" method="POST">
-                            <h6>Crimes Gerais</h6>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" name="novo_crime"
-                                    placeholder="Digite o nome do crime" required>
-                                <button type="submit" class="btn btn-success" name="add_crime"><i
-                                        class="fas fa-plus"></i></button>
-                            </div>
-                        </form>
-
-                        <!-- Formulário de Crimes do ANPP -->
-                        <form action="" method="POST">
-                            <h6>Crimes do ANPP</h6>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" name="novo_crime_anpp"
-                                    placeholder="Digite o crime do ANPP" required>
-                                <button type="submit" class="btn btn-success" name="add_crime_anpp"><i
-                                        class="fas fa-plus"></i></button>
-                            </div>
-                        </form>
+      <!-- Formulário de Crimes do ANPP -->
+      <form action="" method="POST">
+       <h6>Crimes do ANPP</h6>
+       <div class="input-group mb-3">
+        <input type="text" class="form-control" name="novo_crime_anpp" placeholder="Digite o crime do ANPP" required>
+        <button type="submit" class="btn btn-success" name="add_crime_anpp"><i class="fas fa-plus"></i></button>
+       </div>
+      </form>
 
 
 
-                    </div>
-                </div>
-            </div>
+     </div>
+    </div>
+   </div>
 
-            <!-- Listagem -->
-            <div class="col-md-8">
-                <div class="card shadow">
-                    <div class="card-header bg-dark text-white text-center">
-                        <h5>Dados Cadastrados</h5>
-                    </div>
-                    <div class="card-body">
-                        <h5>Crimes Cadastrados</h5>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Crime</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($crimes as $crime): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($crime['nome']) ?></td>
-                                    <td>
-                                        <form action="../controllers/deletar_item.php" method="POST"
-                                            onsubmit="return confirm('Tem certeza que deseja excluir este crime?');">
-                                            <input type="hidden" name="tipo" value="crime">
-                                            <input type="hidden" name="id" value="<?= $crime['id'] ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm"><i
-                                                    class="fas fa-trash"></i> Excluir</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+   <!-- Listagem -->
+   <div class="col-md-8">
+    <div class="card shadow">
+     <div class="card-header bg-dark text-white text-center">
+      <h5>Dados Cadastrados</h5>
+     </div>
+     <div class="card-body">
+      <h5>Crimes Cadastrados</h5>
+      <table class="table table-bordered">
+       <thead>
+        <tr>
+         <th>Crime</th>
+         <th>Ações</th>
+        </tr>
+       </thead>
+       <tbody>
+        <?php foreach ($crimes as $crime): ?>
+        <tr>
+         <td><?= htmlspecialchars($crime['nome']) ?></td>
+         <td>
+          <form action="../controllers/deletar_item.php" method="POST"
+           onsubmit="return confirm('Tem certeza que deseja excluir este crime?');">
+           <input type="hidden" name="tipo" value="crime">
+           <input type="hidden" name="id" value="<?= $crime['id'] ?>">
+           <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Excluir</button>
+          </form>
+         </td>
+        </tr>
+        <?php endforeach; ?>
+       </tbody>
+      </table>
 
-                        <h5>Crimes do ANPP</h5>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Crime do ANPP</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
+      <h5>Crimes do ANPP</h5>
+      <table class="table table-bordered">
+       <thead>
+        <tr>
+         <th>Crime do ANPP</th>
+         <th>Ações</th>
+        </tr>
+       </thead>
+       <tbody>
+        <?php
                                     $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetchAll(PDO::FETCH_ASSOC);
                                     foreach ($crimes_anpp as $crime_anpp): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($crime_anpp['nome']) ?></td>
-                                    <td>
-                                        <form action="../controllers/deletar_item.php" method="POST"
-                                            onsubmit="return confirm('Tem certeza que deseja excluir este crime ANPP?');">
-                                            <input type="hidden" name="tipo" value="crime_anpp">
-                                            <input type="hidden" name="id" value="<?= $crime_anpp['id'] ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm"><i
-                                                    class="fas fa-trash"></i> Excluir</button>
-                                        </form>
+        <tr>
+         <td><?= htmlspecialchars($crime_anpp['nome']) ?></td>
+         <td>
+          <form action="../controllers/deletar_item.php" method="POST"
+           onsubmit="return confirm('Tem certeza que deseja excluir este crime ANPP?');">
+           <input type="hidden" name="tipo" value="crime_anpp">
+           <input type="hidden" name="id" value="<?= $crime_anpp['id'] ?>">
+           <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Excluir</button>
+          </form>
 
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+         </td>
+        </tr>
+        <?php endforeach; ?>
+       </tbody>
+      </table>
 
-                        <h5>Municípios Cadastrados</h5>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Município</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($municipios as $municipio): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($municipio['nome']) ?></td>
-                                    <td>
-                                        <form action="../controllers/deletar_item.php" method="POST"
-                                            onsubmit="return confirm('Tem certeza que deseja excluir este município?');">
-                                            <input type="hidden" name="tipo" value="municipio">
-                                            <input type="hidden" name="id" value="<?= $municipio['id'] ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm"><i
-                                                    class="fas fa-trash"></i> Excluir</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+      <h5>Municípios Cadastrados</h5>
+      <table class="table table-bordered">
+       <thead>
+        <tr>
+         <th>Município</th>
+         <th>Ações</th>
+        </tr>
+       </thead>
+       <tbody>
+        <?php foreach ($municipios as $municipio): ?>
+        <tr>
+         <td><?= htmlspecialchars($municipio['nome']) ?></td>
+         <td>
+          <form action="../controllers/deletar_item.php" method="POST"
+           onsubmit="return confirm('Tem certeza que deseja excluir este município?');">
+           <input type="hidden" name="tipo" value="municipio">
+           <input type="hidden" name="id" value="<?= $municipio['id'] ?>">
+           <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Excluir</button>
+          </form>
+         </td>
+        </tr>
+        <?php endforeach; ?>
+       </tbody>
+      </table>
 
-                        <h5>Bairros Cadastrados</h5>
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Bairro</th>
-                                    <th>Município</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($bairros as $bairro): ?>
-                                <tr>
-                                    <td><?= htmlspecialchars($bairro['nome']) ?></td>
-                                    <td><?= htmlspecialchars($bairro['municipio']) ?></td>
-                                    <td>
-                                        <form action="../controllers/deletar_item.php" method="POST"
-                                            onsubmit="return confirm('Tem certeza que deseja excluir este bairro?');">
-                                            <input type="hidden" name="tipo" value="bairro">
-                                            <input type="hidden" name="id" value="<?= $bairro['id'] ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm"><i
-                                                    class="fas fa-trash"></i> Excluir</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+      <h5>Bairros Cadastrados</h5>
+      <table class="table table-bordered">
+       <thead>
+        <tr>
+         <th>Bairro</th>
+         <th>Município</th>
+         <th>Ações</th>
+        </tr>
+       </thead>
+       <tbody>
+        <?php foreach ($bairros as $bairro): ?>
+        <tr>
+         <td><?= htmlspecialchars($bairro['nome']) ?></td>
+         <td><?= htmlspecialchars($bairro['municipio']) ?></td>
+         <td>
+          <form action="../controllers/deletar_item.php" method="POST"
+           onsubmit="return confirm('Tem certeza que deseja excluir este bairro?');">
+           <input type="hidden" name="tipo" value="bairro">
+           <input type="hidden" name="id" value="<?= $bairro['id'] ?>">
+           <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Excluir</button>
+          </form>
+         </td>
+        </tr>
+        <?php endforeach; ?>
+       </tbody>
+      </table>
 
-                    </div>
-                </div>
-            </div>
-        </div>
+     </div>
     </div>
+   </div>
+  </div>
+ </div>
 
 
-    <script>
-    function confirmarExclusao(form) {
-        let id = form.querySelector('input[name="id"]').value;
-        let tipo = form.querySelector('input[name="tipo"]').value;
+ <script>
+ function confirmarExclusao(form) {
+  let id = form.querySelector('input[name="id"]').value;
+  let tipo = form.querySelector('input[name="tipo"]').value;
 
-        if (!id) {
-            alert("Erro: ID do crime ANPP não encontrado.");
-            return false;
-        }
+  if (!id) {
+   alert("Erro: ID do crime ANPP não encontrado.");
+   return false;
+  }
 
-        console.log("Enviando exclusão:", {
-            tipo,
-            id
-        });
+  console.log("Enviando exclusão:", {
+   tipo,
+   id
+  });
 
-        return confirm("Tem certeza que deseja excluir este crime ANPP?");
-    }
-    </script>
+  return confirm("Tem certeza que deseja excluir este crime ANPP?");
+ }
+ </script>
 
 </body>
 
