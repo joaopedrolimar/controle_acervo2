@@ -251,20 +251,26 @@ try {
        <!--Numero do processo-->
        <div class="mb-3">
         <label for="numero" class="form-label">Número do Processo</label>
-        <input type="text" class="form-control" id="numero" name="numero" required>
+        <input type="text" class="form-control" id="numero" name="numero" >
        </div>
+
+       <div class="mb-3">
+  <label for="data_recebimento" class="form-label">Data do Recebimento da Denúncia</label>
+  <input type="date" class="form-control" id="data_recebimento" name="data_recebimento">
+</div>
+
 
 
        <!--Data da denuncia-->
        <div class="mb-3">
         <label for="data_denuncia" class="form-label">Data da Denúncia</label>
-        <input type="date" class="form-control" id="data_denuncia" name="data_denuncia" required>
+        <input type="date" class="form-control" id="data_denuncia" name="data_denuncia" >
        </div>
 
        <!--Natureza Processual-->
        <div class="mb-3">
         <label for="natureza" class="form-label">Natureza Processual/Procedimental</label>
-        <select class="form-control" id="natureza" name="natureza" onchange="toggleOutraNatureza()" required>
+        <select class="form-control" id="natureza" name="natureza" onchange="toggleOutraNatureza()" >
          <option value="Ação Penal">Ação Penal</option>
          <option value="Inquérito Policial">Inquérito Policial</option>
          <option value="PIC">PIC</option>
@@ -279,7 +285,7 @@ try {
        <!-- Crime -->
        <div class="mb-3">
         <label for="crime" class="form-label">Crime</label>
-        <select class="form-control" id="crime" name="crime" required>
+        <select class="form-control" id="crime" name="crime" >
          <?php foreach ($crimes as $crime): ?>
          <option value="<?= htmlspecialchars($crime['id']) ?>">
           <?= htmlspecialchars($crime['nome']) ?></option>
@@ -290,7 +296,7 @@ try {
        <!-- Seleção de Município -->
        <div class="mb-3">
         <label class="form-label">Município</label>
-        <select class="form-control mt-2" id="municipio" name="municipio" required>
+        <select class="form-control mt-2" id="municipio" name="municipio" >
          <option value="">Selecione um Município</option>
          <?php foreach ($municipios as $municipio): ?>
          <option value="<?= $municipio['id'] ?>"><?= htmlspecialchars($municipio['nome']) ?>
@@ -302,7 +308,7 @@ try {
        <!-- Seleção de Bairro -->
        <div class="mb-3">
         <label class="form-label">Bairro</label>
-        <select class="form-control mt-2" id="bairro" name="bairro" required>
+        <select class="form-control mt-2" id="bairro" name="bairro" >
          <option value="">Selecione um Bairro</option>
          <?php foreach ($bairros as $bairro): ?>
          <option value="<?= $bairro['id'] ?>" data-municipio="<?= $bairro['municipio_id'] ?>">
@@ -337,7 +343,7 @@ try {
        <!--Denunciado-->
        <div class="mb-3">
         <label for="denunciado" class="form-label">Denunciado</label>
-        <input type="text" class="form-control" id="denunciado" name="denunciado" required>
+        <input type="text" class="form-control" id="denunciado" name="denunciado" >
        </div>
 
        <!--vitima-->
@@ -365,7 +371,7 @@ try {
        <!-- Recursos -->
        <div class="mb-3">
         <label for="recursos" class="form-label">Recursos</label>
-        <select class="form-control" id="recursos" name="recursos" required>
+        <select class="form-control" id="recursos" name="recursos" >
          <option value="Acusação">Acusação</option>
          <option value="Defesa">Defesa</option>
          <option value="Não há">Não há</option>
@@ -373,7 +379,7 @@ try {
        </div>
        <div class="mb-3">
         <label for="status" class="form-label">Status</label>
-        <select class="form-control" id="status" name="status" required>
+        <select class="form-control" id="status" name="status">
          <option value="Ativo" selected>Ativo</option>
          <option value="Finalizado">Finalizado</option>
         </select>
@@ -382,7 +388,11 @@ try {
 
 
 
-       <button type="submit" class="btn btn-success w-100" name="cadastrar">Cadastrar</button>
+       <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-success w-100" name="cadastrar">Cadastrar</button>
+        <button type="submit" class="btn btn-warning w-100" name="continuar_editando">Continuar Editando</button>
+        </div>
+
       </form>
      </div>
     </div>
@@ -414,6 +424,12 @@ try {
    })
    .catch(error => console.error("Erro ao verificar número:", error));
  });
+
+ // Executa toggleSentenca ao carregar a página para exibir corretamente a data
+window.addEventListener("DOMContentLoaded", function () {
+    toggleSentenca();
+});
+
  </script>
 
 </body>

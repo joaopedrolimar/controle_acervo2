@@ -72,9 +72,12 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     exit();
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset($_POST['continuar_editando']))) {
+
     $novo = [
         'numero' => trim($_POST['numero']),
+        'data_recebimento_denuncia' => $_POST['data_recebimento'] ?? null,
+
         'natureza' => trim($_POST['natureza']),
         'outra_natureza' => $_POST['outra_natureza'] ?? null,
         'data_denuncia' => $_POST['data_denuncia'],
@@ -88,7 +91,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
         'outra_sentenca' => $_POST['outra_sentenca'] ?? null,
         'data_sentenca' => $_POST['data_sentenca'] ?? null,
         'recursos' => $_POST['recursos'],
-        'status' => $_POST['status']
+        'status' => isset($_POST['continuar_editando']) ? 'Incompleto' : $_POST['status']
+
     ];
 
     $valores_anteriores = [];
@@ -103,16 +107,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
     }
 
     try {
-        $sql = "UPDATE processos SET 
-                numero = :numero, natureza = :natureza, outra_natureza = :outra_natureza, data_denuncia = :data_denuncia, 
-                crime_id = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima, 
-                local_municipio = :municipio_id, local_bairro = :bairro_id, sentenca = :sentenca, 
-                outra_sentenca = :outra_sentenca, data_sentenca = :data_sentenca, recursos = :recursos, status = :status 
-                WHERE id = :id";
+$sql = "UPDATE processos SET 
+        numero = :numero, data_recebimento_denuncia = :data_recebimento, natureza = :natureza, outra_natureza = :outra_natureza, 
+        data_denuncia = :data_denuncia, crime_id = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima, 
+        local_municipio = :municipio_id, local_bairro = :bairro_id, sentenca = :sentenca, 
+        outra_sentenca = :outra_sentenca, data_sentenca = :data_sentenca, recursos = :recursos, status = :status 
+        WHERE id = :id";
+
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':numero' => $novo['numero'],
+            ':data_recebimento' => $novo['data_recebimento_denuncia'],
+
             ':natureza' => $novo['natureza'],
             ':outra_natureza' => $novo['outra_natureza'],
             ':data_denuncia' => $novo['data_denuncia'],
@@ -246,13 +253,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                             <!-- Número do Processo -->
                             <div class="mb-3">
                                 <label for="numero" class="form-label">Número do Processo</label>
-                                <input type="text" class="form-control" id="numero" name="numero" required
-                                    value="<?= htmlspecialchars($processo['numero']) ?>">
+                                <input type="text" class="form-control" id="numero" name="numero" 
+                                    value="<?= htmlspecialchars($processo['numero'] ?? '') ?>"
+>
                             </div>
 
                             <div class="mb-3">
+  <label for="data_recebimento" class="form-label">Data do Recebimento da Denúncia</label>
+  <input type="date" class="form-control" id="data_recebimento" name="data_recebimento"
+         value="<?= $processo['data_recebimento_denuncia'] ?? '' ?>">
+</div>
+
+
+                            <div class="mb-3">
                                 <label for="data_denuncia" class="form-label">Data da Denúncia</label>
-                                <input type="date" class="form-control" id="data_denuncia" name="data_denuncia" required
+                                <input type="date" class="form-control" id="data_denuncia" name="data_denuncia" 
                                     value="<?= $processo['data_denuncia'] ?>">
                             </div>
 
@@ -260,7 +275,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                             <div class="mb-3">
                                 <label for="natureza" class="form-label">Natureza Processual/Procedimental</label>
                                 <select class="form-control" id="natureza" name="natureza"
-                                    onchange="toggleOutraNatureza()" required>
+                                    onchange="toggleOutraNatureza()" >
                                     <option value="Ação Penal"
                                         <?= $processo['natureza'] == "Ação Penal" ? "selected" : "" ?>>Ação Penal
                                     </option>
@@ -287,7 +302,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                             <div class="mb-3">
                                 <label for="crime" class="form-label">Crime</label>
                                 <select class="form-control" id="crime" name="crime" onchange="toggleOutroCrime()"
-                                    required>
+                                    >
                                     <?php foreach ($crimes as $crime): ?>
                                     <option value="<?= $crime['id'] ?>"
                                         <?= ($crime['id'] == $processo['crime_id']) ? "selected" : "" ?>>
@@ -310,7 +325,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
                             <div class="mb-3">
                                 <label for="municipio" class="form-label">Município</label>
                                 <select class="form-control" id="municipio" name="local_municipio"
-                                    onchange="carregarBairros()" required>
+                                    onchange="carregarBairros()" >
                                     <option value="">Selecione um município</option>
                                     <?php foreach ($municipios as $municipio): ?>
                                     <option value="<?= $municipio['id'] ?>"
@@ -323,7 +338,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
 
                             <div class="mb-3">
                                 <label for="bairro" class="form-label">Bairro</label>
-                                <select class="form-control" id="bairro" name="local_bairro" required>
+                                <select class="form-control" id="bairro" name="local_bairro" >
                                     <option value="">Selecione um bairro</option>
                                 </select>
                             </div>
@@ -400,8 +415,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['atualizar'])) {
 
 
                             <!-- Botões -->
-                            <button type="submit" class="btn btn-success w-100" name="atualizar">Atualizar
-                                Processo</button>
+                            <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-success w-100" name="atualizar">Atualizar Processo</button>
+    <button type="submit" class="btn btn-warning w-100" name="continuar_editando">Continuar Editando</button>
+</div>
+
                         </form>
                     </div>
                 </div>

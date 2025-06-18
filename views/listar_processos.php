@@ -459,6 +459,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <th>Número</th>
       <th>Natureza</th>
       <th>Data da Denúncia</th>
+      <th>Recebimento</th>
       <th>Crime</th>
       <th>Denunciado</th>
       <th>Vítima</th>
@@ -476,6 +477,10 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <td><?= htmlspecialchars($processo['numero'] ?? 'Não informado') ?></td>
       <td><?= htmlspecialchars($processo['natureza'] ?? 'Não informado') ?></td>
       <td>
+    <?= !empty($processo['data_recebimento_denuncia']) ? date('d/m/Y', strtotime($processo['data_recebimento_denuncia'])) : 'Não informado' ?>
+    </td>
+
+      <td>
        <?= !empty($processo['data_denuncia']) ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?>
       </td>
       <td><?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></td>
@@ -488,7 +493,18 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
       <td><?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></td>
       <td><?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></td>
-      <td><?= htmlspecialchars($processo['status'] ?? 'Não informado') ?></td>
+<td>
+  <?php if ($processo['status'] === 'Ativo'): ?>
+    <span class="badge bg-primary">Ativo</span>
+  <?php elseif ($processo['status'] === 'Finalizado'): ?>
+    <span class="badge bg-success">Finalizado</span>
+  <?php elseif ($processo['status'] === 'Incompleto'): ?>
+    <span class="badge bg-warning text-dark">Incompleto</span>
+  <?php else: ?>
+    <span class="text-muted">Não informado</span>
+  <?php endif; ?>
+</td>
+
 
       <td>
        <button class="btn btn-info btn-sm btn-action" data-bs-toggle="modal"

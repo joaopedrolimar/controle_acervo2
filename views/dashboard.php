@@ -36,6 +36,24 @@ $meses = $pdo->query("SELECT DATE_FORMAT(data_denuncia, '%m/%Y') as mes, COUNT(*
 $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LEFT JOIN bairros ON processos.local_bairro = bairros.id GROUP BY bairros.nome ORDER BY total DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
 
 
+// Gráfico de ANPPs por status do acordo
+$anpps_status = $pdo->query("
+    SELECT acordo_realizado, COUNT(*) as total
+    FROM anpp
+    GROUP BY acordo_realizado
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// Prepara dados do gráfico de ANPP
+$anppLabels = [];
+$anppValues = [];
+
+foreach ($anpps_status as $row) {
+    $label = strtolower($row['acordo_realizado']) === 'sim' ? 'Realizado' : 'Não Realizado';
+    $anppLabels[] = $label;
+    $anppValues[] = (int)$row['total'];
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -72,7 +90,6 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
   }
  }
 
-<<<<<<< HEAD
    .card {
             border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -82,16 +99,6 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
         }
     </style
     </style>
-=======
- canvas {
-  background-color: #fff;
-  border-radius: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  margin-bottom: 40px;
- }
- </style>
->>>>>>> a792955a5138767609b29864173f26b0bfcba156
 </head>
 
 <body class="bg-light">
@@ -194,31 +201,8 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
 
 
 
- <div class="container mt-4">
-  <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
-
-  <div class="container d-flex flex-column align-items-center mt-5">
-   <h2 class="text-center mb-4"><i class="fas fa-chart-pie"></i> Situação dos Processos</h2>
-   <div style="max-width: 400px; width: 100%;">
-    <canvas id="graficoStatus"></canvas>
-   </div>
-   <div class="col-md-6">
-    <canvas id="graficoCrimes"></canvas>
-   </div>
-   <div class="col-md-6">
-    <canvas id="graficoMunicipios"></canvas>
-   </div>
-   <div class="col-md-6">
-    <canvas id="graficoMeses"></canvas>
-   </div>
-   <div class="col-md-6">
-    <canvas id="graficoBairros"></canvas>
-   </div>
-  </div>
 
 
-
-<<<<<<< HEAD
    <div class="container mt-4">
         <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
         <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
@@ -272,165 +256,112 @@ $bairros = $pdo->query("SELECT bairros.nome, COUNT(*) as total FROM processos LE
                     </div>
                 </div>
             </div>
+
+            <div class="col">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                    <i class="fas fa-handshake"></i> Status dos ANPPs
+                    </div>
+                    <div class="card-body">
+                    <canvas id="graficoAnppStatus"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
-=======
- </div>
-
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
- <script>
- const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
- const graficoStatus = new Chart(ctxStatus, {
-  type: 'pie',
-  data: {
-   labels: ['Ativo', 'Finalizado'],
-   datasets: [{
-    data: [<?= $ativos ?>, <?= $finalizados ?>],
-    backgroundColor: ['#0d6efd', '#198754'], // amarelo e verde
-    borderWidth: 1
-   }]
-  },
-  options: {
-   responsive: true,
-   plugins: {
-    legend: {
-     position: 'bottom'
-    }
-   }
-  }
- });
->>>>>>> a792955a5138767609b29864173f26b0bfcba156
 
 
- new Chart(document.getElementById('graficoCrimes'), {
-  type: 'bar',
-  data: {
-   labels: <?= json_encode(array_column($crimes, 'nome')) ?>,
-   datasets: [{
-    label: 'Processos por Crime',
-    data: <?= json_encode(array_column($crimes, 'total')) ?>,
-    backgroundColor: '#0d6efd'
-   }]
-  }
- });
 
- new Chart(document.getElementById('graficoMunicipios'), {
-  type: 'bar',
-  data: {
-   labels: <?= json_encode(array_column($municipios, 'nome')) ?>,
-   datasets: [{
-    label: 'Processos por Município',
-    data: <?= json_encode(array_column($municipios, 'total')) ?>,
-    backgroundColor: '#6610f2'
-   }]
-  }
- });
 
-<<<<<<< HEAD
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
-        new Chart(ctxStatus, {
-            type: 'pie',
-            data: {
-                labels: ['Ativo', 'Finalizado'],
-                datasets: [{
-                    data: [<?= $ativos ?>, <?= $finalizados ?>],
-                    backgroundColor: ['#0d6efd', '#198754'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
-        });
+<script>
+const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+new Chart(ctxStatus, {
+    type: 'pie',
+    data: {
+        labels: ['Ativo', 'Finalizado'],
+        datasets: [{
+            data: [<?= $ativos ?>, <?= $finalizados ?>],
+            backgroundColor: ['#0d6efd', '#198754'],
+            borderWidth: 1
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
 
+new Chart(document.getElementById('graficoCrimes'), {
+    type: 'bar',
+    data: {
+        labels: <?= json_encode(array_column($crimes, 'nome')) ?>,
+        datasets: [{
+            label: 'Processos por Crime',
+            data: <?= json_encode(array_column($crimes, 'total')) ?>,
+            backgroundColor: '#0d6efd'
+        }]
+    }
+});
 
-       new Chart(document.getElementById('graficoCrimes'), {
-            type: 'bar',
-            data: {
-                labels: <?= json_encode(array_column($crimes, 'nome')) ?>,
-                datasets: [{
-                    label: 'Processos por Crime',
-                    data: <?= json_encode(array_column($crimes, 'total')) ?>,
-                    backgroundColor: '#0d6efd'
-                }]
-            }
-        });
+new Chart(document.getElementById('graficoMunicipios'), {
+    type: 'bar',
+    data: {
+        labels: <?= json_encode(array_column($municipios, 'nome')) ?>,
+        datasets: [{
+            label: 'Processos por Município',
+            data: <?= json_encode(array_column($municipios, 'total')) ?>,
+            backgroundColor: '#6610f2'
+        }]
+    }
+});
 
-        new Chart(document.getElementById('graficoMunicipios'), {
-            type: 'bar',
-            data: {
-                labels: <?= json_encode(array_column($municipios, 'nome')) ?>,
-                datasets: [{
-                    label: 'Processos por Município',
-                    data: <?= json_encode(array_column($municipios, 'total')) ?>,
-                    backgroundColor: '#6610f2'
-                }]
-            }
-        });
+new Chart(document.getElementById('graficoMeses'), {
+    type: 'line',
+    data: {
+        labels: <?= json_encode(array_column($meses, 'mes')) ?>,
+        datasets: [{
+            label: 'Processos Ativos por Mês',
+            data: <?= json_encode(array_column($meses, 'total')) ?>,
+            backgroundColor: 'rgba(25,135,84,0.2)',
+            borderColor: '#198754',
+            borderWidth: 2,
+            fill: true
+        }]
+    }
+});
 
-        new Chart(document.getElementById('graficoMeses'), {
-            type: 'line',
-            data: {
-                labels: <?= json_encode(array_column($meses, 'mes')) ?>,
-                datasets: [{
-                    label: 'Processos Ativos por Mês',
-                    data: <?= json_encode(array_column($meses, 'total')) ?>,
-                    backgroundColor: 'rgba(25,135,84,0.2)',
-                    borderColor: '#198754',
-                    borderWidth: 2,
-                    fill: true
-                }]
-            }
-        });
+new Chart(document.getElementById('graficoBairros'), {
+    type: 'bar',
+    data: {
+        labels: <?= json_encode(array_column($bairros, 'nome')) ?>,
+        datasets: [{
+            label: 'Top 5 Bairros com Mais Processos',
+            data: <?= json_encode(array_column($bairros, 'total')) ?>,
+            backgroundColor: '#fd7e14'
+        }]
+    }
+});
 
-        new Chart(document.getElementById('graficoBairros'), {
-            type: 'bar',
-            data: {
-                labels: <?= json_encode(array_column($bairros, 'nome')) ?>,
-                datasets: [{
-                    label: 'Top 5 Bairros com Mais Processos',
-                    data: <?= json_encode(array_column($bairros, 'total')) ?>,
-                    backgroundColor: '#fd7e14'
-                }]
-            }
-        });
-    </script>
-=======
- new Chart(document.getElementById('graficoMeses'), {
-  type: 'line',
-  data: {
-   labels: <?= json_encode(array_column($meses, 'mes')) ?>,
-   datasets: [{
-    label: 'Processos Ativos por Mês',
-    data: <?= json_encode(array_column($meses, 'total')) ?>,
-    backgroundColor: 'rgba(25,135,84,0.2)',
-    borderColor: '#198754',
-    borderWidth: 2,
-    fill: true
-   }]
-  }
- });
+new Chart(document.getElementById('graficoAnppStatus'), {
+    type: 'pie',
+    data: {
+        labels: <?= json_encode($anppLabels) ?>,
+        datasets: [{
+            label: 'Status dos ANPPs',
+            data: <?= json_encode($anppValues) ?>,
+            backgroundColor: ['#198754', '#dc3545'], // verde e vermelho
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom' }
+        }
+    }
+});
 
- new Chart(document.getElementById('graficoBairros'), {
-  type: 'bar',
-  data: {
-   labels: <?= json_encode(array_column($bairros, 'nome')) ?>,
-   datasets: [{
-    label: 'Top 5 Bairros com Mais Processos',
-    data: <?= json_encode(array_column($bairros, 'total')) ?>,
-    backgroundColor: '#fd7e14'
-   }]
-  }
- });
- </script>
->>>>>>> a792955a5138767609b29864173f26b0bfcba156
+</script>
 
 
 </body>

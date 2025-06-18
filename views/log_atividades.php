@@ -187,7 +187,21 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
            if ($chave === 'local_bairro') $valor = $bairrosMap[$valor] ?? $valor;
            if ($log['tabela_afetada'] === 'anpp' && $chave === 'crime_id') $valor = $crimesAnppMap[$valor] ?? $valor;
           ?>
-        <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valor) ?></li>
+        <?php
+    // Formatar valores numéricos de dinheiro
+    $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
+    $valorFormatado = $valor;
+
+    if (is_null($valor)) {
+        $valorFormatado = "Não há";
+    } elseif ($formatarMoeda && is_numeric($valor)) {
+        $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
+    }
+
+    echo "<li><strong>" . htmlspecialchars($chave) . ":</strong> " . htmlspecialchars($valorFormatado) . "</li>";
+?>
+
+
         <?php endforeach; ?>
        </ul>
        <?php else: ?>N/A<?php endif; ?>
@@ -201,7 +215,21 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
            if ($chave === 'local_bairro') $valor = $bairrosMap[$valor] ?? $valor;
            if ($log['tabela_afetada'] === 'anpp' && $chave === 'crime_id') $valor = $crimesAnppMap[$valor] ?? $valor;
           ?>
-        <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valor) ?></li>
+       <?php
+    // Formatar valores numéricos de dinheiro
+    $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
+    $valorFormatado = $valor;
+
+    if (is_null($valor)) {
+        $valorFormatado = "Não há";
+    } elseif ($formatarMoeda && is_numeric($valor)) {
+        $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
+    }
+
+    echo "<li><strong>" . htmlspecialchars($chave) . ":</strong> " . htmlspecialchars($valorFormatado) . "</li>";
+?>
+
+
         <?php endforeach; ?>
        </ul>
        <?php else: ?>N/A<?php endif; ?>
@@ -224,187 +252,7 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
   </nav>
  </div>
 
-<<<<<<< HEAD
-                    <?php if ($perfil === 'cadastrador' || $perfil === 'administrador'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
-                            href="cadastro_processo.php">
-                            <i class="fas fa-plus"></i> Cadastrar Processos
-                        </a>
-                    </li>
-                    <?php endif; ?>
-
-                    <!-- Novos itens de ANPP -->
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>"
-                            href="listar_anpp.php">
-                            <i class="fas fa-scale-balanced"></i> Listagem de ANPPs
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'anpp.php') ? 'active' : '' ?>" href="anpp.php">
-                            <i class="fas fa-file-circle-plus"></i> Cadastrar ANPP
-                        </a>
-                    </li>
-                    <!-- Fim dos itens de ANPP -->
-
-                    <?php if ($perfil === 'administrador'): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'gerenciar_usuarios.php') ? 'active' : '' ?>"
-                            href="gerenciar_usuarios.php">
-                            <i class="fas fa-users-cog"></i> Gerenciar Usuários
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php">
-                            <i class="fas fa-file-alt"></i> Atos
-                        </a>
-                    </li>
-
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
-                            href="log_atividades.php">
-                            <i class="fas fa-history"></i> Log de Atividades
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
-                            href="cadastro_basico.php">
-                            <i class="fas fa-address-book"></i> Cadastro Básico
-                        </a>
-                    </li>
-                    <?php endif; ?>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-white" href="../controllers/logout.php">
-                            <i class="fas fa-sign-out-alt"></i> Sair
-                        </a>
-                    </li>
-
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-
-
-
-    <!-- Conteúdo -->
-    <div class="container mt-4">
-
-        <h2 class="text-center"><i class="fas fa-history"></i> Log de Atividades</h2>
-
-        <form method="GET" class="mb-3">
-            <div class="input-group">
-                <input type="text" name="busca" class="form-control" placeholder="🔍 Buscar por ação, usuário ou tabela"
-                    value="<?= htmlspecialchars($busca) ?>">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Buscar</button>
-            </div>
-        </form>
-
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Usuário</th>
-                        <th>Ação</th>
-                        <th>Tabela Afetada</th>
-                        <th>ID do Registro</th>
-                        <th>Valores Anteriores</th>
-                        <th>Valores Novos</th>
-                        <th>Data/Hora</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($logs as $log): ?>
-                    <?php
-                        // Converte JSON armazenado no banco para array associativo
-                        $valores_anteriores = !empty($log['valores_anteriores']) ? json_decode($log['valores_anteriores'], true) : null;
-                        $valores_novos = !empty($log['valores_novos']) ? json_decode($log['valores_novos'], true) : null;
-
-                        // Pega o número do processo ou ANPP (se houver)
-                        $numero_processo = $valores_novos['numero'] ??
-                            $valores_novos['numero_inquerito'] ??
-                            $valores_anteriores['numero_inquerito'] ??
-                            $valores_anteriores['numero'] ??
-                            'N/A';
-
-
-                        ?>
-                    <tr>
-                        <td><?= htmlspecialchars($log['usuario_nome']) ?></td>
-                        <td><?= htmlspecialchars($log['acao']) ?></td>
-
-
-
-                        <td><?= htmlspecialchars($log['tabela_afetada']) ?></td>
-                        <td><?= htmlspecialchars($log['registro_id']) ?></td>
-<td>
-                            <?php if ($valores_anteriores): ?><ul class="mb-0">
-                                <?php foreach ($valores_anteriores as $chave => $valor): ?>
-                                    <?php
-                                        $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
-                                        if (is_null($valor) || $valor === '') {
-                                            $valorFormatado = 'Não há';
-                                        } elseif ($formatarMoeda && is_numeric($valor)) {
-                                            $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
-                                        } elseif ($chave === 'tempo_servico' && is_numeric($valor)) {
-                                            $valorFormatado = $valor . ' horas';
-                                        } else {
-                                            $valorFormatado = $valor;
-                                        }
-                                    ?>
-                                    <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valorFormatado) ?></li>
-                                <?php endforeach; ?>
-                            </ul><?php else: ?>N/A<?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if ($valores_novos): ?><ul class="mb-0">
-                                <?php foreach ($valores_novos as $chave => $valor): ?>
-                                    <?php
-                                        $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
-                                        if (is_null($valor) || $valor === '') {
-                                            $valorFormatado = 'Não há';
-                                        } elseif ($formatarMoeda && is_numeric($valor)) {
-                                            $valorFormatado = 'R$ ' . number_format($valor, 2, ',', '.');
-                                        } elseif ($chave === 'tempo_servico' && is_numeric($valor)) {
-                                            $valorFormatado = $valor . ' horas';
-                                        } else {
-                                            $valorFormatado = $valor;
-                                        }
-                                    ?>
-                                    <li><strong><?= htmlspecialchars($chave) ?>:</strong> <?= htmlspecialchars($valorFormatado) ?></li>
-                                <?php endforeach; ?>
-                            </ul><?php else: ?>N/A<?php endif; ?>
-                        </td>
-                        <td><?= date("d/m/Y H:i:s", strtotime($log['data_hora'])) ?></td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-
-
-            </table>
-        </div>
-    </div>
-    <nav>
-        <ul class="pagination justify-content-center">
-            <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-            <li class="page-item <?= ($i == $paginaAtual) ? 'active' : '' ?>">
-                <a class="page-link" href="?pagina=<?= $i ?>&busca=<?= urlencode($busca) ?>"><?= $i ?></a>
-            </li>
-            <?php endfor; ?>
-        </ul>
-    </nav>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-=======
  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
->>>>>>> a792955a5138767609b29864173f26b0bfcba156
 </body>
 
 </html>

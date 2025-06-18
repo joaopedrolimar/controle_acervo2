@@ -2,7 +2,7 @@
 $host = "localhost";
 $dbname = "controle_acervo";
 $user = "root";
-$password = "";
+$password = "root";
 
 try {
     // Criando conexão com PDO

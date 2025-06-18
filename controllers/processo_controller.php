@@ -6,8 +6,11 @@ require_once "logs_controller.php"; // Importa a função de logs
 global $pdo;
 
 // Verifica se o formulário foi enviado
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['cadastrar']) || isset($_POST['continuar_editando']))) {
+
     $numero = trim($_POST['numero']);
+    $data_recebimento = $_POST['data_recebimento'] ?? null;
+
     $natureza = trim($_POST['natureza']);
     $outra_natureza = isset($_POST['outra_natureza']) ? trim($_POST['outra_natureza']) : null;
     $data_denuncia = $_POST['data_denuncia'];
@@ -27,31 +30,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cadastrar'])) {
     $outra_sentenca = isset($_POST['outra_sentenca']) ? trim($_POST['outra_sentenca']) : null;
     $data_sentenca = isset($_POST['data_sentenca']) ? $_POST['data_sentenca'] : null;
     $recursos = trim($_POST['recursos']);
-$status = "Ativo"; // Sempre começa com status "Ativo"
+    if (isset($_POST['continuar_editando'])) {
+    $status = 'Incompleto';
+} else {
+    $status_input = $_POST['status'] ?? 'Ativo';
+    $status = in_array($status_input, ['Ativo', 'Finalizado']) ? $status_input : 'Ativo';
+}
+
+
 
     $usuario_id = $_SESSION['usuario_id']; // ID do usuário logado
 
-    try {
-        // Verifica se o processo já existe
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM processos WHERE numero = :numero");
-        $stmt->bindParam(':numero', $numero, PDO::PARAM_STR);
-        $stmt->execute();
-        $existe = $stmt->fetchColumn();
+try { 
 
-        if ($existe > 0) {
-            $_SESSION['mensagem'] = "Erro: O número de processo '$numero' já está cadastrado!";
-            header("Location: ../views/cadastro_processo.php");
-            exit();
-        }
+// Se for cadastro final, exige número único
+// Se estiver editando e o número estiver vazio, salva como NULL
+if (isset($_POST['continuar_editando']) && $numero === '') {
+    $numero = null;
+}
+
+// Se for cadastro normal, exige número único
+if (isset($_POST['cadastrar'])) {
+    if (empty($numero)) {
+        $_SESSION['mensagem'] = "Erro: O número do processo é obrigatório para cadastro!";
+        header("Location: ../views/cadastro_processo.php");
+        exit();
+    }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM processos WHERE numero = :numero");
+    $stmt->bindParam(':numero', $numero, PDO::PARAM_STR);
+    $stmt->execute();
+    $existe = $stmt->fetchColumn();
+
+    if ($existe > 0) {
+        $_SESSION['mensagem'] = "Erro: O número de processo '$numero' já está cadastrado!";
+        header("Location: ../views/cadastro_processo.php");
+        exit();
+    }
+}
+
+
+
+
 
         // Insere no banco de dados com crime_id
-        $sql = "INSERT INTO processos (numero, natureza, outra_natureza, data_denuncia, crime_id, denunciado, vitima, 
-                                       local_municipio, local_bairro, sentenca, outra_sentenca, data_sentenca, recursos, status, usuario_id) 
-                VALUES (:numero, :natureza, :outra_natureza, :data_denuncia, :crime_id, :denunciado, :vitima, 
-                        :local_municipio, :local_bairro, :sentenca, :outra_sentenca, :data_sentenca, :recursos, :status, :usuario_id)";
+        $sql = "INSERT INTO processos (numero, data_recebimento_denuncia, natureza, outra_natureza, data_denuncia, crime_id, denunciado, vitima, 
+                               local_municipio, local_bairro, sentenca, outra_sentenca, data_sentenca, recursos, status, usuario_id) 
+        VALUES (:numero, :data_recebimento, :natureza, :outra_natureza, :data_denuncia, :crime_id, :denunciado, :vitima, 
+                :local_municipio, :local_bairro, :sentenca, :outra_sentenca, :data_sentenca, :recursos, :status, :usuario_id)";
+
         
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':numero', $numero, PDO::PARAM_STR);
+        $stmt->bindParam(':data_recebimento', $data_recebimento, PDO::PARAM_STR);
+
         $stmt->bindParam(':natureza', $natureza, PDO::PARAM_STR);
         $stmt->bindParam(':outra_natureza', $outra_natureza, PDO::PARAM_STR);
         $stmt->bindParam(':data_denuncia', $data_denuncia, PDO::PARAM_STR);
