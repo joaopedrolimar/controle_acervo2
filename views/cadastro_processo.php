@@ -52,6 +52,8 @@ try {
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
+ <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
+
  <style>
  /* Ajuste da logo na navbar */
  .logo-navbar {
@@ -213,6 +215,15 @@ try {
      </li>
      <?php endif; ?>
 
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
+
      <!-- Sair: todos -->
      <li class="nav-item">
       <a class="nav-link text-white" href="../controllers/logout.php">
@@ -251,26 +262,26 @@ try {
        <!--Numero do processo-->
        <div class="mb-3">
         <label for="numero" class="form-label">Número do Processo</label>
-        <input type="text" class="form-control" id="numero" name="numero" >
+        <input type="text" class="form-control" id="numero" name="numero">
        </div>
 
        <div class="mb-3">
-  <label for="data_recebimento" class="form-label">Data do Recebimento da Denúncia</label>
-  <input type="date" class="form-control" id="data_recebimento" name="data_recebimento">
-</div>
+        <label for="data_recebimento" class="form-label">Data do Recebimento da Denúncia</label>
+        <input type="date" class="form-control" id="data_recebimento" name="data_recebimento">
+       </div>
 
 
 
        <!--Data da denuncia-->
        <div class="mb-3">
         <label for="data_denuncia" class="form-label">Data da Denúncia</label>
-        <input type="date" class="form-control" id="data_denuncia" name="data_denuncia" >
+        <input type="date" class="form-control" id="data_denuncia" name="data_denuncia">
        </div>
 
        <!--Natureza Processual-->
        <div class="mb-3">
         <label for="natureza" class="form-label">Natureza Processual/Procedimental</label>
-        <select class="form-control" id="natureza" name="natureza" onchange="toggleOutraNatureza()" >
+        <select class="form-control" id="natureza" name="natureza" onchange="toggleOutraNatureza()">
          <option value="Ação Penal">Ação Penal</option>
          <option value="Inquérito Policial">Inquérito Policial</option>
          <option value="PIC">PIC</option>
@@ -285,7 +296,7 @@ try {
        <!-- Crime -->
        <div class="mb-3">
         <label for="crime" class="form-label">Crime</label>
-        <select class="form-control" id="crime" name="crime" >
+        <select class="form-control" id="crime" name="crime">
          <?php foreach ($crimes as $crime): ?>
          <option value="<?= htmlspecialchars($crime['id']) ?>">
           <?= htmlspecialchars($crime['nome']) ?></option>
@@ -296,7 +307,7 @@ try {
        <!-- Seleção de Município -->
        <div class="mb-3">
         <label class="form-label">Município</label>
-        <select class="form-control mt-2" id="municipio" name="municipio" >
+        <select class="form-control mt-2" id="municipio" name="municipio">
          <option value="">Selecione um Município</option>
          <?php foreach ($municipios as $municipio): ?>
          <option value="<?= $municipio['id'] ?>"><?= htmlspecialchars($municipio['nome']) ?>
@@ -308,7 +319,7 @@ try {
        <!-- Seleção de Bairro -->
        <div class="mb-3">
         <label class="form-label">Bairro</label>
-        <select class="form-control mt-2" id="bairro" name="bairro" >
+        <select class="form-control mt-2" id="bairro" name="bairro">
          <option value="">Selecione um Bairro</option>
          <?php foreach ($bairros as $bairro): ?>
          <option value="<?= $bairro['id'] ?>" data-municipio="<?= $bairro['municipio_id'] ?>">
@@ -343,7 +354,7 @@ try {
        <!--Denunciado-->
        <div class="mb-3">
         <label for="denunciado" class="form-label">Denunciado</label>
-        <input type="text" class="form-control" id="denunciado" name="denunciado" >
+        <input type="text" class="form-control" id="denunciado" name="denunciado">
        </div>
 
        <!--vitima-->
@@ -371,7 +382,7 @@ try {
        <!-- Recursos -->
        <div class="mb-3">
         <label for="recursos" class="form-label">Recursos</label>
-        <select class="form-control" id="recursos" name="recursos" >
+        <select class="form-control" id="recursos" name="recursos">
          <option value="Acusação">Acusação</option>
          <option value="Defesa">Defesa</option>
          <option value="Não há">Não há</option>
@@ -391,7 +402,7 @@ try {
        <div class="d-flex gap-2">
         <button type="submit" class="btn btn-success w-100" name="cadastrar">Cadastrar</button>
         <button type="submit" class="btn btn-warning w-100" name="continuar_editando">Continuar Editando</button>
-        </div>
+       </div>
 
       </form>
      </div>
@@ -426,10 +437,9 @@ try {
  });
 
  // Executa toggleSentenca ao carregar a página para exibir corretamente a data
-window.addEventListener("DOMContentLoaded", function () {
-    toggleSentenca();
-});
-
+ window.addEventListener("DOMContentLoaded", function() {
+  toggleSentenca();
+ });
  </script>
 
 </body>

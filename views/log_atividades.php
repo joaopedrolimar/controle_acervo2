@@ -89,6 +89,7 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
  <title>Log de Atividades</title>
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+ <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
  <style>
  .logo-navbar {
   max-width: 300px;
@@ -136,6 +137,16 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
        href="log_atividades.php"><i class="fas fa-history"></i> Log de Atividades</a></li>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
        href="cadastro_basico.php"><i class="fas fa-address-book"></i> Cadastro Básico</a></li>
+
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
+
      <li class="nav-item"><a class="nav-link text-white" href="../controllers/logout.php"><i
         class="fas fa-sign-out-alt"></i> Sair</a></li>
     </ul>
@@ -215,7 +226,7 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
            if ($chave === 'local_bairro') $valor = $bairrosMap[$valor] ?? $valor;
            if ($log['tabela_afetada'] === 'anpp' && $chave === 'crime_id') $valor = $crimesAnppMap[$valor] ?? $valor;
           ?>
-       <?php
+        <?php
     // Formatar valores numéricos de dinheiro
     $formatarMoeda = in_array($chave, ['valor_reparacao', 'valor_multa']);
     $valorFormatado = $valor;

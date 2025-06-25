@@ -38,6 +38,8 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+ <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
+
  <style>
  .table-responsive {
   overflow-x: auto;
@@ -164,6 +166,15 @@ $crimes_anpp = $pdo->query("SELECT * FROM crimes_anpp ORDER BY nome ASC")->fetch
       </a>
      </li>
      <?php endif; ?>
+
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
 
      <!-- Sair: todos -->
      <li class="nav-item">
