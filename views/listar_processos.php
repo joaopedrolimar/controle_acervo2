@@ -257,6 +257,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
+ <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
 
  <style>
  .table-responsive {
@@ -398,6 +399,15 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      <?php endif; ?>
 
 
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
+
      <li class="nav-item">
       <a class="nav-link text-white" href="../controllers/logout.php">
        <i class="fas fa-sign-out-alt"></i> Sair
@@ -469,6 +479,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <th>Número</th>
       <th>Natureza</th>
       <th>Data do Recebimento da Denúncia</th>
+      <th>Data do Recebimento da Denúncia</th>
       <th>Data da Denúncia</th>
 
       <th>Crime</th>
@@ -476,6 +487,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <th>Vítima</th>
       <th>Local do Fato</th>
       <th>Sentença</th>
+      <th>Data da Sentença</th>
       <th>Data da Sentença</th>
       <th>Recursos</th>
       <th>Status</th>
@@ -491,6 +503,8 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <td><?= (!empty($processo['data_recebimento']) && $processo['data_recebimento'] != '0000-00-00') 
         ? date('d/m/Y', strtotime($processo['data_recebimento'])) : 'Não informado' ?></td>
 
+      <td><?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
+        ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></td>
       <td><?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
         ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></td>
       <td><?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></td>
@@ -522,28 +536,31 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
       <td>
-       <button class="btn btn-info btn-sm btn-action" data-bs-toggle="modal"
-        data-bs-target="#modal<?= $processo['id'] ?>">
-        <i class="fas fa-eye"></i> Exibir
-       </button>
+       <div class="d-flex flex-column align-items-center">
+        <button class="btn btn-info btn-sm mb-1 w-100" data-bs-toggle="modal"
+         data-bs-target="#modal<?= $processo['id'] ?>">
+         <i class="fas fa-eye"></i> Exibir
+        </button>
 
-       <?php if (in_array($perfil, ['administrador', 'cadastrador', 'cadastrador_consulta'])): ?>
-       <a href="../controllers/editar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-warning btn-sm btn-action">
-        <i class="fas fa-edit"></i> Editar
-       </a>
-       <a href="../controllers/deletar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm btn-action"
-        onclick="return confirm('Tem certeza que deseja excluir?');">
-        <i class="fas fa-trash"></i> Excluir
-       </a>
-       <?php endif; ?>
+        <?php if (in_array($perfil, ['administrador', 'cadastrador', 'cadastrador_consulta'])): ?>
+        <a href="../controllers/editar_processo.php?id=<?= $processo['id'] ?>"
+         class="btn btn-warning btn-sm mb-1 w-100">
+         <i class="fas fa-edit"></i> Editar
+        </a>
 
+        <a href="../controllers/deletar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm mb-1 w-100"
+         onclick="return confirm('Tem certeza que deseja excluir?');">
+         <i class="fas fa-trash"></i> Excluir
+        </a>
+        <?php endif; ?>
 
-       <a target="_blank" href="../controllers/gerar_pdf.php?id=<?= $processo['id'] ?>"
-        class="btn btn-success btn-sm btn-action">
-        <i class="fas fa-file-pdf"></i> PDF
-       </a>
-
+        <a target="_blank" href="../controllers/gerar_pdf.php?id=<?= $processo['id'] ?>"
+         class="btn btn-success btn-sm w-100">
+         <i class="fas fa-file-pdf"></i> PDF
+        </a>
+       </div>
       </td>
+
      </tr>
 
      <!-- Calcula tempo de vida  do Processo -->
@@ -579,6 +596,9 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
     ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></p>
 
+          <?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
+    ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></p>
+
          <p><strong>Crime:</strong>
           <?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></p>
 
@@ -595,6 +615,15 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></p>
 
 
+
+         <?php
+$data = $processo['data_sentenca'];
+?>
+         <p><strong>Data da Sentença:</strong>
+          <?= (!empty($data) && $data != '0000-00-00' && $data != '30/11/-0001') 
+    ? date('d/m/Y', strtotime($data)) 
+    : 'Não informado' ?>
+         </p>
 
          <?php
 $data = $processo['data_sentenca'];
