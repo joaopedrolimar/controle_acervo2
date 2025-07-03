@@ -17,6 +17,15 @@ $perfil = $_SESSION['usuario_perfil'] ?? '';
 
 $pagina_atual = basename($_SERVER['PHP_SELF']);
 
+// Gráfico de processos por natureza processual
+$por_natureza = $pdo->query("
+    SELECT natureza, COUNT(*) as total 
+    FROM processos 
+    GROUP BY natureza
+    ORDER BY total DESC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+
 // Contagem de processos por status
 $sql_ativos = "SELECT COUNT(*) FROM processos WHERE status = 'Ativo'";
 $sql_finalizados = "SELECT COUNT(*) FROM processos WHERE status = 'Finalizado'";
@@ -90,15 +99,19 @@ foreach ($anpps_status as $row) {
   }
  }
 
-   .card {
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            font-weight: 600;
-        }
-    </style
-    </style>
+ .card {
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+ }
+
+ .card-header {
+  font-weight: 600;
+ }
+
+ .card-body canvas {
+  max-height: 320px;
+ }
+ </style>
 </head>
 
 <body class="bg-light">
@@ -188,6 +201,15 @@ foreach ($anpps_status as $row) {
      </li>
      <?php endif; ?>
 
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
+
      <li class="nav-item">
       <a class="nav-link text-white" href="../controllers/logout.php">
        <i class="fas fa-sign-out-alt"></i> Sair
@@ -203,165 +225,216 @@ foreach ($anpps_status as $row) {
 
 
 
-   <div class="container mt-4">
-        <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
-        <div class="row row-cols-1 row-cols-md-2 g-4 mt-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <i class="fas fa-chart-pie"></i> Situação dos Processos
-                    </div>
-                    <div class="card-body">
-                        <canvas id="graficoStatus"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header bg-secondary text-white">
-                        <i class="fas fa-balance-scale"></i> Processos por Crime
-                    </div>
-                    <div class="card-body">
-                        <canvas id="graficoCrimes"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <i class="fas fa-map-marker-alt"></i> Processos por Município
-                    </div>
-                    <div class="card-body">
-                        <canvas id="graficoMunicipios"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <i class="fas fa-calendar-alt"></i> Processos Ativos por Mês
-                    </div>
-                    <div class="card-body">
-                        <canvas id="graficoMeses"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <i class="fas fa-map"></i> Top 5 Bairros com Mais Processos
-                    </div>
-                    <div class="card-body">
-                        <canvas id="graficoBairros"></canvas>
-                    </div>
-                </div>
-            </div>
+ <div class="container mt-4">
 
-            <div class="col">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                    <i class="fas fa-handshake"></i> Status dos ANPPs
-                    </div>
-                    <div class="card-body">
-                    <canvas id="graficoAnppStatus"></canvas>
-                    </div>
-                </div>
-            </div>
+  <h2 class="text-center"><i class="fas fa-chart-line"></i> Dashboard</h2>
 
-        </div>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-4">
+
+
+
+
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-primary text-white">
+      <i class="fas fa-chart-pie"></i> Situação dos Processos
+     </div>
+     <div class="card-body">
+      <canvas id="graficoStatus"></canvas>
+     </div>
     </div>
+   </div>
+
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-secondary text-white">
+      <i class="fas fa-balance-scale"></i> Processos por Crime
+     </div>
+     <div class="card-body">
+      <canvas id="graficoCrimes"></canvas>
+     </div>
+    </div>
+   </div>
+
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-success text-white">
+      <i class="fas fa-map-marker-alt"></i> Processos por Município
+     </div>
+     <div class="card-body">
+      <canvas id="graficoMunicipios"></canvas>
+     </div>
+    </div>
+   </div>
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-info text-white">
+      <i class="fas fa-calendar-alt"></i> Processos Ativos por Mês
+     </div>
+     <div class="card-body">
+      <canvas id="graficoMeses"></canvas>
+     </div>
+    </div>
+   </div>
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-warning text-dark">
+      <i class="fas fa-map"></i> Top 5 Bairros com Mais Processos
+     </div>
+     <div class="card-body">
+      <canvas id="graficoBairros"></canvas>
+     </div>
+    </div>
+   </div>
+
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-danger text-white">
+      <i class="fas fa-handshake"></i> Status dos ANPPs
+     </div>
+     <div class="card-body">
+      <canvas id="graficoAnppStatus"></canvas>
+     </div>
+    </div>
+   </div>
+
+   <div class="col">
+    <div class="card">
+     <div class="card-header bg-dark text-white">
+      <i class="fas fa-folder-tree"></i> Processos por Natureza Processual
+     </div>
+     <div class="card-body">
+      <canvas id="graficoNatureza"></canvas>
+     </div>
+    </div>
+   </div>
+
+  </div>
+ </div>
 
 
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
-new Chart(ctxStatus, {
-    type: 'pie',
-    data: {
-        labels: ['Ativo', 'Finalizado'],
-        datasets: [{
-            data: [<?= $ativos ?>, <?= $finalizados ?>],
-            backgroundColor: ['#0d6efd', '#198754'],
-            borderWidth: 1
-        }]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-});
 
-new Chart(document.getElementById('graficoCrimes'), {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode(array_column($crimes, 'nome')) ?>,
-        datasets: [{
-            label: 'Processos por Crime',
-            data: <?= json_encode(array_column($crimes, 'total')) ?>,
-            backgroundColor: '#0d6efd'
-        }]
+
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <script>
+ const ctxStatus = document.getElementById('graficoStatus').getContext('2d');
+ new Chart(ctxStatus, {
+  type: 'pie',
+  data: {
+   labels: ['Ativo', 'Finalizado'],
+   datasets: [{
+    data: [<?= $ativos ?>, <?= $finalizados ?>],
+    backgroundColor: ['#0d6efd', '#198754'],
+    borderWidth: 1
+   }]
+  },
+  options: {
+   responsive: true,
+   plugins: {
+    legend: {
+     position: 'bottom'
     }
-});
+   }
+  }
+ });
 
-new Chart(document.getElementById('graficoMunicipios'), {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode(array_column($municipios, 'nome')) ?>,
-        datasets: [{
-            label: 'Processos por Município',
-            data: <?= json_encode(array_column($municipios, 'total')) ?>,
-            backgroundColor: '#6610f2'
-        }]
+ new Chart(document.getElementById('graficoCrimes'), {
+  type: 'bar',
+  data: {
+   labels: <?= json_encode(array_column($crimes, 'nome')) ?>,
+   datasets: [{
+    label: 'Processos por Crime',
+    data: <?= json_encode(array_column($crimes, 'total')) ?>,
+    backgroundColor: '#0d6efd'
+   }]
+  }
+ });
+
+ new Chart(document.getElementById('graficoMunicipios'), {
+  type: 'bar',
+  data: {
+   labels: <?= json_encode(array_column($municipios, 'nome')) ?>,
+   datasets: [{
+    label: 'Processos por Município',
+    data: <?= json_encode(array_column($municipios, 'total')) ?>,
+    backgroundColor: '#6610f2'
+   }]
+  }
+ });
+
+ new Chart(document.getElementById('graficoMeses'), {
+  type: 'line',
+  data: {
+   labels: <?= json_encode(array_column($meses, 'mes')) ?>,
+   datasets: [{
+    label: 'Processos Ativos por Mês',
+    data: <?= json_encode(array_column($meses, 'total')) ?>,
+    backgroundColor: 'rgba(25,135,84,0.2)',
+    borderColor: '#198754',
+    borderWidth: 2,
+    fill: true
+   }]
+  }
+ });
+
+ new Chart(document.getElementById('graficoBairros'), {
+  type: 'bar',
+  data: {
+   labels: <?= json_encode(array_column($bairros, 'nome')) ?>,
+   datasets: [{
+    label: 'Top 5 Bairros com Mais Processos',
+    data: <?= json_encode(array_column($bairros, 'total')) ?>,
+    backgroundColor: '#fd7e14'
+   }]
+  }
+ });
+
+ new Chart(document.getElementById('graficoAnppStatus'), {
+  type: 'pie',
+  data: {
+   labels: <?= json_encode($anppLabels) ?>,
+   datasets: [{
+    label: 'Status dos ANPPs',
+    data: <?= json_encode($anppValues) ?>,
+    backgroundColor: ['#198754', '#dc3545'], // verde e vermelho
+    borderWidth: 1
+   }]
+  },
+  options: {
+   responsive: true,
+   plugins: {
+    legend: {
+     position: 'bottom'
     }
-});
+   }
+  }
+ });
 
-new Chart(document.getElementById('graficoMeses'), {
-    type: 'line',
-    data: {
-        labels: <?= json_encode(array_column($meses, 'mes')) ?>,
-        datasets: [{
-            label: 'Processos Ativos por Mês',
-            data: <?= json_encode(array_column($meses, 'total')) ?>,
-            backgroundColor: 'rgba(25,135,84,0.2)',
-            borderColor: '#198754',
-            borderWidth: 2,
-            fill: true
-        }]
+ new Chart(document.getElementById('graficoNatureza'), {
+  type: 'bar',
+  data: {
+   labels: <?= json_encode(array_column($por_natureza, 'natureza')) ?>,
+   datasets: [{
+    label: 'Total de Processos',
+    data: <?= json_encode(array_column($por_natureza, 'total')) ?>,
+    backgroundColor: '#343a40' // cinza escuro
+   }]
+  },
+  options: {
+   responsive: true,
+   plugins: {
+    legend: {
+     display: false
     }
-});
+   }
+  }
+ });
+ </script>
 
-new Chart(document.getElementById('graficoBairros'), {
-    type: 'bar',
-    data: {
-        labels: <?= json_encode(array_column($bairros, 'nome')) ?>,
-        datasets: [{
-            label: 'Top 5 Bairros com Mais Processos',
-            data: <?= json_encode(array_column($bairros, 'total')) ?>,
-            backgroundColor: '#fd7e14'
-        }]
-    }
-});
 
-new Chart(document.getElementById('graficoAnppStatus'), {
-    type: 'pie',
-    data: {
-        labels: <?= json_encode($anppLabels) ?>,
-        datasets: [{
-            label: 'Status dos ANPPs',
-            data: <?= json_encode($anppValues) ?>,
-            backgroundColor: ['#198754', '#dc3545'], // verde e vermelho
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: { position: 'bottom' }
-        }
-    }
-});
-
-</script>
 
 
 </body>

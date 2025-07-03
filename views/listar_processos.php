@@ -256,6 +256,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
  <title>Lista de Processos</title>
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+ <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
 
  <style>
  .table-responsive {
@@ -388,6 +389,15 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      </li>
      <?php endif; ?>
 
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
+
      <li class="nav-item">
       <a class="nav-link text-white" href="../controllers/logout.php">
        <i class="fas fa-sign-out-alt"></i> Sair
@@ -458,13 +468,15 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <th>ID</th>
       <th>Número</th>
       <th>Natureza</th>
+      <th>Data do Recebimento da Denúncia</th>
       <th>Data da Denúncia</th>
-      <th>Recebimento</th>
+
       <th>Crime</th>
       <th>Denunciado</th>
       <th>Vítima</th>
       <th>Local do Fato</th>
       <th>Sentença</th>
+      <th>Data da Sentença</th>
       <th>Recursos</th>
       <th>Status</th>
       <th>Ações</th>
@@ -476,13 +488,11 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <td><?= $processo['id'] ?></td>
       <td><?= htmlspecialchars($processo['numero'] ?? 'Não informado') ?></td>
       <td><?= htmlspecialchars($processo['natureza'] ?? 'Não informado') ?></td>
-      <td>
-    <?= !empty($processo['data_recebimento_denuncia']) ? date('d/m/Y', strtotime($processo['data_recebimento_denuncia'])) : 'Não informado' ?>
-    </td>
+      <td><?= (!empty($processo['data_recebimento']) && $processo['data_recebimento'] != '0000-00-00') 
+        ? date('d/m/Y', strtotime($processo['data_recebimento'])) : 'Não informado' ?></td>
 
-      <td>
-       <?= !empty($processo['data_denuncia']) ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?>
-      </td>
+      <td><?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
+        ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></td>
       <td><?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></td>
 
       <td><?= htmlspecialchars($processo['denunciado'] ?? 'Não informado') ?></td>
@@ -492,18 +502,23 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </td>
 
       <td><?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></td>
-      <td><?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></td>
-<td>
-  <?php if ($processo['status'] === 'Ativo'): ?>
-    <span class="badge bg-primary">Ativo</span>
-  <?php elseif ($processo['status'] === 'Finalizado'): ?>
-    <span class="badge bg-success">Finalizado</span>
-  <?php elseif ($processo['status'] === 'Incompleto'): ?>
-    <span class="badge bg-warning text-dark">Incompleto</span>
-  <?php else: ?>
-    <span class="text-muted">Não informado</span>
-  <?php endif; ?>
-</td>
+      <td>
+       <?= (!empty($processo['data_sentenca']) && $processo['data_sentenca'] != '0000-00-00') 
+    ? date('d/m/Y', strtotime($processo['data_sentenca'])) 
+    : 'Não informado' ?>
+      </td>
+
+      <td>
+       <?php if ($processo['status'] === 'Ativo'): ?>
+       <span class="badge bg-primary">Ativo</span>
+       <?php elseif ($processo['status'] === 'Finalizado'): ?>
+       <span class="badge bg-success">Finalizado</span>
+       <?php elseif ($processo['status'] === 'Incompleto'): ?>
+       <span class="badge bg-warning text-dark">Incompleto</span>
+       <?php else: ?>
+       <span class="text-muted">Não informado</span>
+       <?php endif; ?>
+      </td>
 
 
       <td>
@@ -556,9 +571,14 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
          <p><strong>Número do Processo:</strong> <?= htmlspecialchars($processo['numero']) ?>
          </p>
          <p><strong>Natureza:</strong> <?= htmlspecialchars($processo['natureza']) ?></p>
+
+         <p><strong>Data do Recebimento da Denúncia:</strong>
+          <?= (!empty($processo['data_recebimento']) && $processo['data_recebimento'] != '0000-00-00') 
+    ? date('d/m/Y', strtotime($processo['data_recebimento'])) : 'Não informado' ?></p>
          <p><strong>Data da Denúncia:</strong>
-          <?= !empty($processo['data_denuncia']) ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?>
-         </p>
+          <?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
+    ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></p>
+
          <p><strong>Crime:</strong>
           <?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></p>
 
@@ -576,9 +596,15 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
-         <?php if (!empty($processo['data_sentenca'])): ?>
-         <p><strong>Data da Sentença:</strong> <?= date('d/m/Y', strtotime($processo['data_sentenca'])) ?></p>
-         <?php endif; ?>
+         <?php
+$data = $processo['data_sentenca'];
+?>
+         <p><strong>Data da Sentença:</strong>
+          <?= (!empty($data) && $data != '0000-00-00' && $data != '30/11/-0001') 
+    ? date('d/m/Y', strtotime($data)) 
+    : 'Não informado' ?>
+         </p>
+
 
 
 

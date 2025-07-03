@@ -119,6 +119,7 @@ $totalPaginas = ceil($total / $porPagina);
  <title>Listagem de ANPPs</title>
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+ <link rel="icon" href="../public/img/favicon-32x32.png" type="../img/favicon-32x32.png">
  <style>
  /* Ajuste da logo na navbar */
  .logo-navbar {
@@ -249,6 +250,15 @@ $totalPaginas = ceil($total / $porPagina);
       </a>
      </li>
      <?php endif; ?>
+
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'relatorios.php') ? 'active' : '' ?>" href="relatorios.php">
+       <i class="fas fa-chart-bar"></i> Relatórios
+      </a>
+     </li>
+     <?php endif; ?>
+
 
      <!-- Sair: todos -->
      <li class="nav-item">
