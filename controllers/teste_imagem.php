@@ -1,4 +1,3 @@
-<!--/controllers/editar_processo.php-->
 <?php
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -61,34 +60,12 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
 
 // Ao enviar formulário
 if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset($_POST['continuar_editando']))) {
-
-    $natureza = trim($_POST['natureza']);
-
-    // Regras para limpar datas dependendo da natureza
-    if (in_array($natureza, ['PIC', 'Inquérito Policial', 'Outra'])) {
-        $data_recebimento = null;
-        $data_denuncia = null;
-    } else {
-        $data_recebimento = $_POST['data_recebimento'] ?? null;
-        $data_denuncia = $_POST['data_denuncia'] ?? null;
-    }
-
-    // captura opcoes_finalizado
-    $opcoes = $_POST['opcoes_finalizado'] ?? [];
-    $oferecendo_denuncia = in_array('Oferecendo de Denúncia', $opcoes) ? 1 : 0;
-    $arquivamento = in_array('Arquivamento', $opcoes) ? 1 : 0;
-    $realizacao_anpp = in_array('Realização de ANPP', $opcoes) ? 1 : 0;
-    $requisicao_inquerito = in_array('Requisição de Inquérito', $opcoes) ? 1 : 0;
-    $conversao_pic = in_array('Conversão em PIC', $opcoes) ? 1 : 0;
-    $outra_medida = in_array('Outra Medida', $opcoes) ? 1 : 0;
-    $especifique_outra_medida = $_POST['especifique_outra_medida'] ?? null;
-
     $novo = [
         'numero' => trim($_POST['numero']),
-        'data_recebimento_denuncia' => $data_recebimento,
-        'natureza' => $natureza,
+        'data_recebimento_denuncia' => $_POST['data_recebimento'] ?? null,
+        'natureza' => trim($_POST['natureza']),
         'outra_natureza' => $_POST['outra_natureza'] ?? null,
-        'data_denuncia' => $data_denuncia,
+        'data_denuncia' => $_POST['data_denuncia'],
         'crime_id' => ($_POST['crime'] !== "Outro") ? intval($_POST['crime']) : null,
         'outro_crime' => $_POST['outro_crime'] ?? null,
         'denunciado' => trim($_POST['denunciado']),
@@ -102,7 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
         'status' => isset($_POST['continuar_editando']) ? 'Incompleto' : $_POST['status']
     ];
 
-    // LOG
     $valores_anteriores = [];
     $valores_novos = [];
     foreach ($novo as $campo => $valor_novo) {
@@ -115,14 +91,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
 
     try {
         $sql = "UPDATE processos SET 
-            numero = :numero, data_recebimento_denuncia = :data_recebimento, natureza = :natureza, outra_natureza = :outra_natureza,
-            data_denuncia = :data_denuncia, crime_id = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima,
-            local_municipio = :municipio_id, local_bairro = :bairro_id, sentenca = :sentenca,
-            outra_sentenca = :outra_sentenca, data_sentenca = :data_sentenca, recursos = :recursos, status = :status,
-            oferecendo_denuncia = :oferecendo_denuncia, arquivamento = :arquivamento, realizacao_anpp = :realizacao_anpp,
-            requisicao_inquerito = :requisicao_inquerito, conversao_pic = :conversao_pic, outra_medida = :outra_medida,
-            especifique_outra_medida = :especifique_outra_medida
-            WHERE id = :id";
+                numero = :numero, data_recebimento_denuncia = :data_recebimento, natureza = :natureza, outra_natureza = :outra_natureza,
+                data_denuncia = :data_denuncia, crime_id = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima,
+                local_municipio = :municipio_id, local_bairro = :bairro_id, sentenca = :sentenca,
+                outra_sentenca = :outra_sentenca, data_sentenca = :data_sentenca, recursos = :recursos, status = :status
+                WHERE id = :id";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':numero' => $novo['numero'],
@@ -141,32 +114,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
             ':data_sentenca' => $novo['data_sentenca'],
             ':recursos' => $novo['recursos'],
             ':status' => $novo['status'],
-            ':oferecendo_denuncia' => $oferecendo_denuncia,
-            ':arquivamento' => $arquivamento,
-            ':realizacao_anpp' => $realizacao_anpp,
-            ':requisicao_inquerito' => $requisicao_inquerito,
-            ':conversao_pic' => $conversao_pic,
-            ':outra_medida' => $outra_medida,
-            ':especifique_outra_medida' => $especifique_outra_medida,
             ':id' => $id
         ]);
-
         if (!empty($valores_anteriores)) {
             registrar_log($_SESSION['usuario_id'], "Editou um processo", "processos", $id,
                 json_encode($valores_anteriores, JSON_UNESCAPED_UNICODE),
-                json_encode($valores_novos, JSON_UNESCAPED_UNICODE));
+                json_encode($valores_novos, JSON_UNESCAPED_UNICODE)
+            );
         }
         $_SESSION['mensagem'] = "Processo atualizado com sucesso!";
     } catch (PDOException $e) {
         $_SESSION['mensagem'] = "Erro ao atualizar: " . $e->getMessage();
     }
-
     header("Location: ../views/listar_processos.php");
     exit();
 }
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="pt">
@@ -178,14 +141,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
  <script>
  let bairrosPorMunicipio = <?= json_encode($bairrosPorMunicipio) ?>;
-
- let oferecendo_denuncia = <?= json_encode((bool)$processo['oferecendo_denuncia']) ?>;
- let arquivamento = <?= json_encode((bool)$processo['arquivamento']) ?>;
- let realizacao_anpp = <?= json_encode((bool)$processo['realizacao_anpp']) ?>;
- let requisicao_inquerito = <?= json_encode((bool)$processo['requisicao_inquerito']) ?>;
- let conversao_pic = <?= json_encode((bool)$processo['conversao_pic']) ?>;
- let outra_medida = <?= json_encode((bool)$processo['outra_medida']) ?>;
- let especifique_outra_medida = <?= json_encode($processo['especifique_outra_medida']) ?>;
 
  function toggleOutraNatureza() {
   let select = document.getElementById("natureza");
@@ -243,11 +198,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
   }
  }
 
- function toggleOutraMedida(checkbox) {
-  let campo = checkbox.parentElement.querySelector('input[type="text"]');
-  campo.style.display = checkbox.checked ? "block" : "none";
- }
-
  function atualizarFormulario() {
   let natureza = document.getElementById("natureza").value;
   let status = document.getElementById("status").value;
@@ -268,10 +218,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
    labelDenunciado.innerText = "Flagrado/Indiciado";
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
-    opcoesFinalizado.innerHTML =
-     `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecendo de Denúncia<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento`;
+    opcoesFinalizado.innerHTML = `<label>Marque:</label><br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecendo de Denúncia<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento`;
    }
   } else if (natureza === "PIC") {
    dataDenuncia.style.display = "none";
@@ -279,21 +228,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
    labelDenunciado.innerText = "Investigado";
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
-    opcoesFinalizado.innerHTML =
-     `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecendo de Denúncia<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Realização de ANPP" ${realizacao_anpp ? 'checked' : ''}> Realização de ANPP<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento`;
+    opcoesFinalizado.innerHTML = `<label>Marque:</label><br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecendo de Denúncia<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Realização de ANPP"> Realização de ANPP<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento`;
    }
   } else if (natureza === "NF") {
    labelDenunciado.innerText = "Noticiado";
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
-    opcoesFinalizado.innerHTML =
-     `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Requisição de Inquérito" ${requisicao_inquerito ? 'checked' : ''}> Requisição de Inquérito<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Conversão em PIC" ${conversao_pic ? 'checked' : ''}> Conversão em PIC<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento`;
+    opcoesFinalizado.innerHTML = `<label>Marque:</label><br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Requisição de Inquérito"> Requisição de Inquérito<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Conversão em PIC"> Conversão em PIC<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento`;
    }
   } else if (natureza === "Outra") {
    dataDenuncia.style.display = "none";
@@ -303,12 +250,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML =
      `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecendo de Denúncia<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento<br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Outra Medida" onclick="toggleOutraMedida(this)" ${outra_medida ? 'checked' : ''}> Outra Medida
-   <input type="text" name="especifique_outra_medida" class="form-control mt-2" value="${especifique_outra_medida ?? ''}" style="${outra_medida ? '' : 'display:none;'}" placeholder="Especifique...">`;
+    <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecendo de Denúncia<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento<br>
+    <input type="checkbox" name="opcoes_finalizado[]" value="Outra Medida" onclick="toggleOutraMedida(this)"> Outra Medida
+    <input type="text" name="especifique_outra_medida" class="form-control mt-2" style="display:none;" placeholder="Especifique...">`;
    }
   }
+ }
+
+ function toggleOutraMedida(checkbox) {
+  let campo = checkbox.parentElement.querySelector('input[type="text"]');
+  campo.style.display = checkbox.checked ? "block" : "none";
  }
 
  window.addEventListener("DOMContentLoaded", function() {
@@ -320,9 +272,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
   atualizarFormulario();
  });
  </script>
-
-
-
 </head>
 
 <body class="bg-light">
@@ -338,16 +287,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
         <input type="text" class="form-control" name="numero" value="<?= htmlspecialchars($processo['numero']) ?>">
        </div>
 
-       <div class="mb-3" id="data_denuncia_container">
-        <label class="form-label">Data da Denúncia</label>
-        <input type="date" class="form-control" name="data_denuncia" value="<?= $processo['data_denuncia'] ?>">
-       </div>
-
-
        <div class="mb-3" id="data_recebimento_container">
         <label class="form-label">Data do Recebimento da Denúncia</label>
         <input type="date" class="form-control" name="data_recebimento"
          value="<?= $processo['data_recebimento_denuncia'] ?>">
+       </div>
+
+       <div class="mb-3" id="data_denuncia_container">
+        <label class="form-label">Data da Denúncia</label>
+        <input type="date" class="form-control" name="data_denuncia" value="<?= $processo['data_denuncia'] ?>">
        </div>
 
        <div class="mb-3">
@@ -362,7 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
          <option value="Outra" <?= !empty($processo['outra_natureza']) ? "selected" : "" ?>>Outra</option>
         </select>
         <input type="text" class="form-control mt-2" id="outraNatureza" name="outra_natureza"
-         placeholder="Especifique..." value="<?= htmlspecialchars($processo['outra_natureza'] ?? '') ?>"
+         placeholder="Especifique..." value="<?= htmlspecialchars($processo['outra_natureza']) ?>"
          style="<?= empty($processo['outra_natureza']) ? 'display:none;' : '' ?>">
        </div>
 
@@ -421,12 +369,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
          <option value="Não há" <?= $processo['sentenca'] == "Não há" ? "selected" : "" ?>>Não há</option>
         </select>
         <input type="text" class="form-control mt-2" id="outraSentenca" name="outra_sentenca"
-         placeholder="Especifique..." value="<?= htmlspecialchars($processo['outra_sentenca'] ?? '') ?>"
+         placeholder="Especifique..." value="<?= htmlspecialchars($processo['outra_sentenca']) ?>"
          style="<?= empty($processo['outra_sentenca']) ? 'display:none;' : '' ?>">
         <input type="date" class="form-control mt-2" id="dataSentenca" name="data_sentenca"
-         value="<?= htmlspecialchars($processo['data_sentenca'] ?? '') ?>">
+         value="<?= $processo['data_sentenca'] ?>">
        </div>
-
 
        <div class="mb-3">
         <label class="form-label">Recursos</label>
@@ -444,8 +391,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
          <option value="Finalizado" <?= $processo['status'] == "Finalizado" ? "selected" : "" ?>>Finalizado</option>
         </select>
        </div>
-
-
 
        <div class="mb-3" id="opcoes_finalizado" style="display:none;"></div>
 

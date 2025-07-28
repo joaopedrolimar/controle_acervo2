@@ -186,14 +186,30 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
      <div class="mb-3">
       <label for="tipo" class="form-label">Selecione o tipo de relatório:</label>
       <select name="tipo" id="tipo" class="form-select">
-       <option value="crimes_bairro">Crimes por Bairro</option>
+       <option value="vitima_idosa">Vítima - Pessoa Idosa</option>
+       <option value="tipo_crime_ano_bairro">Tipo do Crime / Ano / Bairro</option>
+       <option value="oferecimento_denuncia_ano">Oferecimento de Denúncia por Ano</option>
+       <option value="crimes_bairro_ano">Crimes por Bairro e Ano</option>
        <option value="tempo_denuncia_recebimento">Tempo entre Denúncia e Recebimento</option>
       </select>
+
      </div>
+
+     <div class="mb-3">
+      <label for="data_inicial" class="form-label">Data Inicial:</label>
+      <input type="date" id="data_inicial" name="data_inicial" class="form-control">
+     </div>
+
+     <div class="mb-3">
+      <label for="data_final" class="form-label">Data Final:</label>
+      <input type="date" id="data_final" name="data_final" class="form-control">
+     </div>
+
      <button type="submit" class="btn btn-primary">
       <i class="fas fa-file-pdf me-1"></i> Gerar PDF
      </button>
     </form>
+
    </div>
   </div>
  </div>

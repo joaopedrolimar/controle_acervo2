@@ -260,7 +260,14 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
  <style>
  .table-responsive {
-  overflow-x: auto;
+  overflow-x: unset;
+  /* remove o scroll */
+ }
+
+ .table {
+  width: 100%;
+  /* faz ocupar toda a largura */
+  table-layout: auto;
  }
 
  /* Ajuste da logo na navbar */
@@ -468,170 +475,172 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <th>ID</th>
       <th>Número</th>
       <th>Natureza</th>
+
+      <th>Denúncia</th>
       <th>Data do Recebimento da Denúncia</th>
-      <th>Data da Denúncia</th>
       <th>Crime</th>
       <th>Denunciado</th>
       <th>Vítima</th>
-      <th>Local do Fato</th>
+      <th>Local</th>
       <th>Sentença</th>
-      <th>Data da Sentença</th>
+      <th>Data Sentença</th>
       <th>Recursos</th>
       <th>Status</th>
+      <th>Decisões</th>
       <th>Ações</th>
      </tr>
     </thead>
     <tbody>
-     <?php foreach ($processos as $processo): ?>
+     <?php foreach ($processos as $p): ?>
+     <?php
+     // Novo label para tipo do processo
+     $label = match($p['natureza']) {
+        'Inquérito Policial' => 'Flagrado/Indiciado',
+        'PIC' => 'Investigado',
+        'NF' => 'Noticiado',
+        'Outra' => 'Investigado/Requerido',
+        default => 'Denunciado'
+     };
+     // Monta array de decisões finais
+     $decisoes = [];
+     if ($p['oferecendo_denuncia']) $decisoes[] = 'Oferecendo de Denúncia';
+     if ($p['arquivamento']) $decisoes[] = 'Arquivamento';
+     if ($p['realizacao_anpp']) $decisoes[] = 'Realização ANPP';
+     if ($p['requisicao_inquerito']) $decisoes[] = 'Requisição Inquérito';
+     if ($p['conversao_pic']) $decisoes[] = 'Conversão PIC';
+     if ($p['outra_medida']) $decisoes[] = $p['especifique_outra_medida'] ?: 'Outra Medida';
+   ?>
      <tr>
-      <td><?= $processo['id'] ?></td>
-      <td><?= htmlspecialchars($processo['numero'] ?? 'Não informado') ?></td>
-      <td><?= htmlspecialchars($processo['natureza'] ?? 'Não informado') ?></td>
-
-      <td><?= (!empty($processo['data_recebimento_denuncia']) && $processo['data_recebimento_denuncia'] != '0000-00-00') 
-        ? date('d/m/Y', strtotime($processo['data_recebimento_denuncia'])) : 'Não informado' ?></td>
-
-      <td><?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
-        ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></td>
-      <td><?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></td>
-
-      <td><?= htmlspecialchars($processo['denunciado'] ?? 'Não informado') ?></td>
-      <td><?= htmlspecialchars($processo['vitima'] ?? 'Não há') ?></td>
-      <td>
-       <?= htmlspecialchars(($processo['nome_municipio'] ?? 'Não informado') . ' - ' . ($processo['nome_bairro'] ?? 'Não informado')) ?>
-      </td>
-
-      <td><?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></td>
+      <td><?= $p['id'] ?></td>
+      <td><?= htmlspecialchars($p['numero']) ?></td>
+      <td><?= htmlspecialchars($p['natureza']) ?></td>
 
       <td>
-       <?= (!empty($processo['data_sentenca']) && $processo['data_sentenca'] != '0000-00-00') 
-    ? date('d/m/Y', strtotime($processo['data_sentenca'])) 
-    : 'Não informado' ?>
+       <?= ($p['data_denuncia'] && $p['data_denuncia']!='0000-00-00') ? date('d/m/Y', strtotime($p['data_denuncia'])) : 'Não informado' ?>
       </td>
-
-      <td><?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></td>
-
-
-
-
-      <td class="text-center align-middle">
-       <?php if ($processo['status'] === 'Ativo'): ?>
-       <span class="badge bg-primary">Ativo</span>
-       <?php elseif ($processo['status'] === 'Finalizado'): ?>
-       <span class="badge bg-success">Finalizado</span>
-       <?php elseif ($processo['status'] === 'Incompleto'): ?>
-       <span class="badge bg-warning text-dark">Incompleto</span>
-       <?php else: ?>
-       <span class="text-muted">Não informado</span>
-       <?php endif; ?>
+      <td>
+       <?= ($p['data_recebimento_denuncia'] && $p['data_recebimento_denuncia']!='0000-00-00') ? date('d/m/Y', strtotime($p['data_recebimento_denuncia'])) : 'Não informado' ?>
       </td>
-
-
-
-
+      <td><?= htmlspecialchars($p['nome_crime']) ?></td>
+      <td><b><?= $label ?>:</b> <?= htmlspecialchars($p['denunciado']) ?></td>
+      <td><?= htmlspecialchars($p['vitima']) ?></td>
+      <td><?= htmlspecialchars(($p['nome_municipio']??'Não informado').'-'.($p['nome_bairro']??'')) ?></td>
+      <td><?= htmlspecialchars($p['sentenca']) ?></td>
+      <td>
+       <?= ($p['data_sentenca'] && $p['data_sentenca']!='0000-00-00') ? date('d/m/Y', strtotime($p['data_sentenca'])) : 'Não informado' ?>
+      </td>
+      <td><?= htmlspecialchars($p['recursos']) ?></td>
+      <td>
+       <?= $p['status']=='Ativo'?'<span class="badge bg-primary">Ativo</span>':($p['status']=='Finalizado'?'<span class="badge bg-success">Finalizado</span>':'<span class="badge bg-warning">Incompleto</span>') ?>
+      </td>
+      <td><?= $decisoes ? implode(', ', $decisoes) : '-' ?></td>
       <td>
        <div class="d-flex flex-column align-items-center">
-        <button class="btn btn-info btn-sm mb-1 w-100" data-bs-toggle="modal"
-         data-bs-target="#modal<?= $processo['id'] ?>">
+        <button class="btn btn-info btn-sm mb-1 w-100" data-bs-toggle="modal" data-bs-target="#modal<?= $p['id'] ?>">
          <i class="fas fa-eye"></i> Exibir
         </button>
-
         <?php if (in_array($perfil, ['administrador', 'cadastrador', 'cadastrador_consulta'])): ?>
-        <a href="../controllers/editar_processo.php?id=<?= $processo['id'] ?>"
-         class="btn btn-warning btn-sm mb-1 w-100">
+        <a href="../controllers/editar_processo.php?id=<?= $p['id'] ?>" class="btn btn-warning btn-sm mb-1 w-100">
          <i class="fas fa-edit"></i> Editar
         </a>
-
-        <a href="../controllers/deletar_processo.php?id=<?= $processo['id'] ?>" class="btn btn-danger btn-sm mb-1 w-100"
-         onclick="return confirm('Tem certeza que deseja excluir?');">
+        <a href="../controllers/deletar_processo.php?id=<?= $p['id'] ?>" class="btn btn-danger btn-sm mb-1 w-100"
+         onclick="return confirm('Tem certeza?')">
          <i class="fas fa-trash"></i> Excluir
         </a>
         <?php endif; ?>
-
-        <a target="_blank" href="../controllers/gerar_pdf.php?id=<?= $processo['id'] ?>"
-         class="btn btn-success btn-sm w-100">
+        <a target="_blank" href="../controllers/gerar_pdf.php?id=<?= $p['id'] ?>" class="btn btn-success btn-sm w-100">
          <i class="fas fa-file-pdf"></i> PDF
         </a>
        </div>
       </td>
-
      </tr>
 
      <!-- Calcula tempo de vida  do Processo -->
      <?php
-                    $dias_ativo = '';
-                    if (!empty($processo['data_denuncia']) && $processo['status'] === 'Ativo') {
-                        $data_denuncia = new DateTime($processo['data_denuncia']);
-                        $hoje = new DateTime();
-                        $dias = $data_denuncia->diff($hoje)->days;
-                        $dias_ativo = "$dias dias em Ativo";
-                    }
-                    ?>
+$dias_ativo = '';
+if (!empty($p['status']) && $p['status'] === 'Ativo' && !empty($p['data_denuncia']) && $p['data_denuncia'] != '0000-00-00') {
+    $data_inicio = new DateTime($p['data_denuncia']);
+    $hoje = new DateTime();
+    $dias = $data_inicio->diff($hoje)->days;
+    $dias_ativo = "$dias dias em Ativo";
+}
+
+?>
+
 
      <!-- Modal para Exibir Detalhes do Processo -->
-     <div class="modal fade" id="modal<?= $processo['id'] ?>" tabindex="-1"
-      aria-labelledby="modalLabel<?= $processo['id'] ?>" aria-hidden="true">
+     <div class="modal fade" id="modal<?= $p['id'] ?>" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg">
        <div class="modal-content">
         <div class="modal-header bg-primary text-white">
-         <h5 class="modal-title" id="modalLabel<?= $processo['id'] ?>">Detalhes do Processo
-          #<?= htmlspecialchars($processo['numero']) ?></h5>
+         <h5 class="modal-title">Detalhes do Processo #<?= htmlspecialchars($p['numero']) ?></h5>
          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-         <p><strong>Número do Processo:</strong> <?= htmlspecialchars($processo['numero']) ?>
-         </p>
-         <p><strong>Natureza:</strong> <?= htmlspecialchars($processo['natureza']) ?></p>
 
-         <p><strong>Data do Recebimento da Denúncia:</strong>
-          <?= (!empty($processo['data_recebimento_denuncia']) && $processo['data_recebimento_denuncia'] != '0000-00-00') 
-    ? date('d/m/Y', strtotime($processo['data_recebimento_denuncia'])) : 'Não informado' ?></p>
-         <p><strong>Data da Denúncia:</strong>
-          <?= (!empty($processo['data_denuncia']) && $processo['data_denuncia'] != '0000-00-00') 
-    ? date('d/m/Y', strtotime($processo['data_denuncia'])) : 'Não informado' ?></p>
+         <?php if ($p['numero']): ?>
+         <p><strong>Número do Processo:</strong> <?= htmlspecialchars($p['numero']) ?></p>
+         <?php endif; ?>
 
-         <p><strong>Crime:</strong>
-          <?= htmlspecialchars($processo['nome_crime'] ?? 'Não informado') ?></p>
+         <?php if ($p['natureza']): ?>
+         <p><strong>Natureza:</strong> <?= htmlspecialchars($p['natureza']) ?></p>
+         <?php endif; ?>
 
-         <p><strong>Denunciado:</strong>
-          <?= htmlspecialchars($processo['denunciado'] ?? 'Não informado') ?></p>
-         <p><strong>Vítima:</strong> <?= htmlspecialchars($processo['vitima'] ?? 'Não há') ?>
-         </p>
+         <?php if ($p['nome_crime']): ?>
+         <p><strong>Crime:</strong> <?= htmlspecialchars($p['nome_crime']) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['denunciado']): ?>
+         <p><strong><?= $label ?>:</strong> <?= htmlspecialchars($p['denunciado']) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['vitima']): ?>
+         <p><strong>Vítima:</strong> <?= htmlspecialchars($p['vitima']) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['sentenca']): ?>
+         <p><strong>Sentença:</strong> <?= htmlspecialchars($p['sentenca']) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['data_recebimento_denuncia'] && $p['data_recebimento_denuncia'] != '0000-00-00'): ?>
+         <p><strong>Data do Recebimento:</strong> <?= date('d/m/Y', strtotime($p['data_recebimento_denuncia'])) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['data_denuncia'] && $p['data_denuncia'] != '0000-00-00'): ?>
+         <p><strong>Data da Denúncia:</strong> <?= date('d/m/Y', strtotime($p['data_denuncia'])) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['data_sentenca'] && $p['data_sentenca'] != '0000-00-00'): ?>
+         <p><strong>Data da Sentença:</strong> <?= date('d/m/Y', strtotime($p['data_sentenca'])) ?></p>
+         <?php endif; ?>
+
+         <?php if ($p['nome_municipio'] || $p['nome_bairro']): ?>
          <p><strong>Local do Fato:</strong>
-          <?= htmlspecialchars(($processo['nome_municipio'] ?? 'Não informado') . ' - ' . ($processo['nome_bairro'] ?? 'Não informado')) ?>
-         </p>
+          <?= htmlspecialchars(($p['nome_municipio']??'').'-'.($p['nome_bairro']??'')) ?></p>
+         <?php endif; ?>
 
+         <?php if ($p['recursos']): ?>
+         <p><strong>Recursos:</strong> <?= htmlspecialchars($p['recursos']) ?></p>
+         <?php endif; ?>
 
-         <p><strong>Sentença:</strong>
-          <?= htmlspecialchars($processo['sentenca'] ?? 'Não informado') ?></p>
+         <?php if ($p['status']): ?>
+         <p><strong>Status:</strong> <?= htmlspecialchars($p['status']) ?></p>
+         <?php endif; ?>
 
-
-
-         <?php
-$data = $processo['data_sentenca'];
-?>
-         <p><strong>Data da Sentença:</strong>
-          <?= (!empty($data) && $data != '0000-00-00' && $data != '30/11/-0001') 
-    ? date('d/m/Y', strtotime($data)) 
-    : 'Não informado' ?>
-         </p>
-
-
-
-
-         <p><strong>Recursos:</strong>
-          <?= htmlspecialchars($processo['recursos'] ?? 'Não informado') ?></p>
-         <p><strong>Status:</strong>
-          <?= htmlspecialchars($processo['status'] ?? 'Não informado') ?></p>
          <?php if (!empty($dias_ativo)): ?>
          <p><strong>Tempo no status Ativo:</strong> <?= $dias_ativo ?></p>
          <?php endif; ?>
 
 
+         <?php if ($decisoes): ?>
+         <p><strong>Decisões:</strong> <?= implode(', ', $decisoes) ?></p>
+         <?php endif; ?>
+
         </div>
        </div>
       </div>
      </div>
+
 
      <?php endforeach; ?>
     </tbody>

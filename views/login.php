@@ -118,6 +118,7 @@ if (isset($_SESSION['usuario_id'])) {
  </div>
 
  <!-- Modal de Atualizações -->
+ <!-- Modal de Atualizações -->
  <div class="modal fade" id="modalAtualizacoes" tabindex="-1" aria-labelledby="modalAtualizacoesLabel"
   aria-hidden="true">
   <div class="modal-dialog">
@@ -128,6 +129,25 @@ if (isset($_SESSION['usuario_id'])) {
     </div>
     <div class="modal-body">
      <ul class="list-group">
+      <li class="list-group-item">
+       <strong>Versão 1.2:</strong>
+       <ul class="mt-2 mb-0">
+        <li>Parâmetros de data por média de tempo de devolução adicionados nos relatórios.</li>
+        <li>Regras dinâmicas por natureza processual:</li>
+        <ul class="mt-1 mb-2">
+         <li><strong>Inquérito Policial:</strong> Oculta datas, sentença e recursos. "Denunciado" vira
+          "Flagrado/Indiciado". Se finalizado, mostra checkboxes para "Oferecendo denúncia" e "Arquivamento".</li>
+         <li><strong>PIC:</strong> Oculta datas, sentença e recursos. "Denunciado" vira "Investigado". Se finalizado,
+          mostra checkboxes para "Oferecendo denúncia" e "Arquivamento".</li>
+         <li><strong>NF:</strong> "Denunciado" vira "Noticiado". Se finalizado, mostra checkboxes para "Requisição de
+          Inquérito", "Conversão em PIC" e "Arquivamento".</li>
+         <li><strong>Outra Natureza:</strong> Oculta datas. "Denunciado" vira "Investigado/Requerido". Se finalizado,
+          mostra checkboxes para "Oferecendo denúncia", "Arquivamento" e "Outra Medida" (abrindo campo para
+          especificar).</li>
+        </ul>
+        <li>Aumentado o tamanho dos campos "Denunciado" e "Vítima" para possibilitar escrever vários nomes.</li>
+       </ul>
+      </li>
       <li class="list-group-item">
        <strong>Versão 1.1:</strong>
        <ul class="mt-2 mb-0">
@@ -140,7 +160,7 @@ if (isset($_SESSION['usuario_id'])) {
        </ul>
       </li>
       <li class="list-group-item">
-       <strong>Versão 1.0:</strong> Primeira versão com as funções necessárias para o sistema.
+       <strong>Versão 1.0:</strong> Primeira versão com as funções essenciais para o sistema.
       </li>
      </ul>
     </div>
@@ -150,6 +170,7 @@ if (isset($_SESSION['usuario_id'])) {
    </div>
   </div>
  </div>
+
 
 
  <!-- Bootstrap -->
