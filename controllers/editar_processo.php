@@ -359,11 +359,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
           Inquérito Policial</option>
          <option value="PIC" <?= $processo['natureza'] == "PIC" ? "selected" : "" ?>>PIC</option>
          <option value="NF" <?= $processo['natureza'] == "NF" ? "selected" : "" ?>>NF</option>
-         <option value="Outra" <?= !empty($processo['outra_natureza']) ? "selected" : "" ?>>Outra</option>
+         <option value="Outra" <?= $processo['natureza'] == "Outra" ? "selected" : "" ?>>Outra</option>
         </select>
+
         <input type="text" class="form-control mt-2" id="outraNatureza" name="outra_natureza"
          placeholder="Especifique..." value="<?= htmlspecialchars($processo['outra_natureza'] ?? '') ?>"
-         style="<?= empty($processo['outra_natureza']) ? 'display:none;' : '' ?>">
+         style="<?= $processo['natureza'] == "Outra" ? '' : 'display:none;' ?>">
+
        </div>
 
        <div class="mb-3">
