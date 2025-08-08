@@ -35,6 +35,22 @@ $indiciado_filter = $_GET['indiciado_filter'] ?? '';
 $data_inicio = $_GET['data_inicio'] ?? '';
 $data_fim = $_GET['data_fim'] ?? '';
 
+// Captura os filtros do formulário
+$search = $_GET['search'] ?? '';
+$advanced_search = isset($_GET['advanced_search']);
+
+$data_fato_inicio = $_GET['data_fato_inicio'] ?? '';
+$data_fato_fim = $_GET['data_fato_fim'] ?? '';
+
+$id_filter = $_GET['id_filter'] ?? '';
+$date_filter = $_GET['date_filter'] ?? '';
+$municipio_filter = $_GET['municipio_filter'] ?? '';
+$bairro_filter = $_GET['bairro_filter'] ?? '';
+$vitima_filter = $_GET['vitima_filter'] ?? '';
+$denunciado_filter = $_GET['denunciado_filter'] ?? '';
+$sentenca_filter = $_GET['sentenca_filter'] ?? '';
+$status_filter = $_GET['status_filter'] ?? '';
+
 $sql = "SELECT anpp.*, crimes_anpp.nome AS crime_nome
         FROM anpp
         JOIN crimes_anpp ON anpp.crime_id = crimes_anpp.id
@@ -181,7 +197,7 @@ $totalPaginas = ceil($total / $porPagina);
      <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
-       <i class="fas fa-list"></i> Listar Processos
+       <i class="fas fa-list"></i> <br> Listar Processos
       </a>
      </li>
      <?php endif; ?>
@@ -233,11 +249,20 @@ $totalPaginas = ceil($total / $porPagina);
      </li>
      <?php endif; ?>
 
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
+
      <!-- Log de Atividades: somente administrador -->
      <?php if ($perfil === 'administrador'): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-       <i class="fas fa-history"></i> Log de Atividades
+       <i class="fas fa-history"></i> <br> Log de Atividades
       </a>
      </li>
      <?php endif; ?>
@@ -333,6 +358,7 @@ $totalPaginas = ceil($total / $porPagina);
       <th>Número do Inquérito</th>
       <th>Indiciado</th>
       <th>Crime</th>
+      <th>Nome da Vítima</th>
       <th>Data da Audiência</th>
       <th>Acordo</th>
       <th>Reparação</th>
@@ -348,6 +374,7 @@ $totalPaginas = ceil($total / $porPagina);
       <td><?= htmlspecialchars($anpp['numero_inquerito']) ?></td>
       <td><?= htmlspecialchars($anpp['indiciado']) ?></td>
       <td><?= htmlspecialchars($anpp['crime_nome']) ?></td>
+      <td><?= htmlspecialchars($anpp['nome_vitima']) ?></td>
       <td><?= !empty($anpp['data_audiencia']) ? date("d/m/Y", strtotime($anpp['data_audiencia'])) : '-' ?>
       </td>
 
@@ -474,15 +501,50 @@ $totalPaginas = ceil($total / $porPagina);
    </table>
   </div>
 
-  <nav aria-label="Paginação" class="mt-4">
-   <ul class="pagination justify-content-center">
-    <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-    <li class="page-item <?= ($i == $paginaAtual) ? 'active' : '' ?>">
-     <a class="page-link" href="?pagina=<?= $i ?>"><?= $i ?></a>
-    </li>
-    <?php endfor; ?>
+  <!-- Paginação -->
+  <nav>
+   <ul class="pagination justify-content-center mt-4">
+    <?php
+  $max_links = 2; // Quantas páginas antes e depois da atual
+  $start = max(1, $paginaAtual - $max_links);
+  $end = min($totalPaginas, $paginaAtual + $max_links);
+
+
+  $base_url = "?pagina=";
+  $filtros = "";
+  $filtros .= $search ? "&search=$search" : '';
+  $filtros .= $advanced_search ? '&advanced_search=1' : '';
+  $filtros .= $id_filter ? "&id_filter=$id_filter" : '';
+  $filtros .= $date_filter ? "&date_filter=$date_filter" : '';
+  $filtros .= $municipio_filter ? "&municipio_filter=$municipio_filter" : '';
+  $filtros .= $bairro_filter ? "&bairro_filter=$bairro_filter" : '';
+
+  // Primeira página
+  if ($start > 1) {
+    echo '<li class="page-item"><a class="page-link" href="' . $base_url . '1' . $filtros . '">1</a></li>';
+    if ($start > 2) {
+      echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+    }
+  }
+
+  // Páginas do intervalo
+  for ($i = $start; $i <= $end; $i++) {
+    $active = ($i == $paginaAtual) ? 'active' : '';
+    echo '<li class="page-item ' . $active . '"><a class="page-link" href="' . $base_url . $i . $filtros . '">' . $i . '</a></li>';
+  }
+
+  // Última página
+if ($end < $totalPaginas) {
+    if ($end < $totalPaginas - 1) {
+        echo '<li class="page-item disabled"><span class="page-link">...</span></li>';
+    }
+    echo '<li class="page-item"><a class="page-link" href="' . $base_url . $totalPaginass . $filtros . '">' . $totalPaginas . '</a></li>';
+}
+
+  ?>
    </ul>
   </nav>
+
 
 
 

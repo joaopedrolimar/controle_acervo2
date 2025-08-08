@@ -42,7 +42,7 @@ switch ($proc['natureza']) {
 
 // Monta decisões finais
 $decisoes = [];
-if ($proc['oferecendo_denuncia']) $decisoes[] = 'Oferecendo Denúncia';
+if ($proc['oferecendo_denuncia']) $decisoes[] = 'Oferecimento Denúncia';
 if ($proc['arquivamento']) $decisoes[] = 'Arquivamento';
 if ($proc['realizacao_anpp']) $decisoes[] = 'Realização ANPP';
 if ($proc['requisicao_inquerito']) $decisoes[] = 'Requisição Inquérito';
@@ -72,6 +72,7 @@ $html = '
 
 <h2>Ministério Público do Estado do Amazonas</h2>
 <h3>Procuradoria-Geral de Justiça</h3>
+<h4 style="text-align: center;">93a. Promotoria de Justiça de Manaus</h4>
 <h1>Sistema de Acervo</h1>
 
 <div class="section">
@@ -80,11 +81,15 @@ $html = '
         <tr><td><strong>ID:</strong></td><td>' . $proc['id'] . '</td></tr>
         <tr><td><strong>Número:</strong></td><td>' . exibir($proc['numero']) . '</td></tr>
         <tr><td><strong>Natureza:</strong></td><td>' . exibir($proc['natureza']) . '</td></tr>
+        ' . (!empty($proc['data_instauracao']) && $proc['data_instauracao'] != '0000-00-00' ? 
+        '<tr><td><strong>Data da Instauração:</strong></td><td>' . dataFmt($proc['data_instauracao']) . '</td></tr>' 
+        : '') . '
         <tr><td><strong>Data da Denúncia:</strong></td><td>' . dataFmt($proc['data_denuncia']) . '</td></tr>
         <tr><td><strong>Data do Recebimento da Denúncia:</strong></td><td>' . dataFmt($proc['data_recebimento_denuncia']) . '</td></tr>
         <tr><td><strong>Crime:</strong></td><td>' . exibir($proc['crime_nome']) . '</td></tr>
     </table>
 </div>
+
 
 <div class="section">
     <h3>👤 Envolvidos</h3>

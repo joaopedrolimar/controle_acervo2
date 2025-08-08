@@ -333,7 +333,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
-       <i class="fas fa-list"></i> Listar Processos
+       <i class="fas fa-list"></i> <br> Listar Processos
       </a>
      </li>
      <?php endif; ?>
@@ -380,10 +380,19 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      </li>
      <?php endif; ?>
 
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
+
      <?php if ($perfil === 'administrador'): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-       <i class="fas fa-history"></i> Log de Atividades
+       <i class="fas fa-history"></i> <br> Log de Atividades
       </a>
      </li>
      <?php endif; ?>
@@ -503,7 +512,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      };
      // Monta array de decisões finais
      $decisoes = [];
-     if ($p['oferecendo_denuncia']) $decisoes[] = 'Oferecendo de Denúncia';
+     if ($p['oferecendo_denuncia']) $decisoes[] = 'Oferecimento de Denúncia';
      if ($p['arquivamento']) $decisoes[] = 'Arquivamento';
      if ($p['realizacao_anpp']) $decisoes[] = 'Realização ANPP';
      if ($p['requisicao_inquerito']) $decisoes[] = 'Requisição Inquérito';
@@ -650,9 +659,9 @@ if (!empty($p['status']) && $p['status'] === 'Ativo' && !empty($p['data_denuncia
  </div>
 
  <!-- Paginação -->
-<nav>
- <ul class="pagination justify-content-center mt-4">
-  <?php
+ <nav>
+  <ul class="pagination justify-content-center mt-4">
+   <?php
   $max_links = 2; // Quantas páginas antes e depois da atual
   $start = max(1, $paginaAtual - $max_links);
   $end = min($total_paginas, $paginaAtual + $max_links);
@@ -690,8 +699,8 @@ if ($end < $total_paginas) {
 }
 
   ?>
- </ul>
-</nav>
+  </ul>
+ </nav>
 
 
  <div class="text-center mt-3 mb-5 text-muted">

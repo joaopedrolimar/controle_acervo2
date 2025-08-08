@@ -145,7 +145,7 @@ try {
      <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
-       <i class="fas fa-list"></i> Listar Processos
+       <i class="fas fa-list"></i> <br> Listar Processos
       </a>
      </li>
      <?php endif; ?>
@@ -197,11 +197,20 @@ try {
      </li>
      <?php endif; ?>
 
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
+
      <!-- Log de Atividades: apenas admin -->
      <?php if ($perfil === 'administrador'): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-       <i class="fas fa-history"></i> Log de Atividades
+       <i class="fas fa-history"></i> <br> Log de Atividades
       </a>
      </li>
      <?php endif; ?>
@@ -276,12 +285,18 @@ try {
         <input type="date" class="form-control" id="data_recebimento" name="data_recebimento">
        </div>
 
-
+       <!-- Data da Instauração -->
+       <div id="campoDataInstauracao">
+        <label for="data_instauracao" class="form-label">Data da Instauração</label>
+        <input type="date" class="form-control" name="data_instauracao" id="data_instauracao">
+       </div>
 
        <!-- Natureza -->
        <div class="mb-3">
         <label for="natureza" class="form-label">Natureza Processual/Procedimental</label>
-        <select class="form-control" id="natureza" name="natureza" onchange="atualizarFormulario()">
+        <select class="form-control" id="natureza" name="natureza"
+         onchange="atualizarFormulario(); toggleOutraNatureza();">
+
          <option value="Ação Penal">Ação Penal</option>
          <option value="Inquérito Policial">Inquérito Policial</option>
          <option value="PIC">PIC</option>
@@ -291,6 +306,9 @@ try {
         <input type="text" class="form-control mt-2" id="outraNatureza" name="outra_natureza"
          placeholder="Especifique..." style="display:none;">
        </div>
+
+
+
 
        <!-- Crime -->
        <div class="mb-3">
@@ -348,6 +366,8 @@ try {
          <option value="Outra">Outra</option>
          <option value="Não há">Não há</option>
         </select>
+
+
         <input type="text" class="form-control mt-2" id="outraSentenca" name="outra_sentenca"
          placeholder="Especifique outra sentença..." style="display:none;">
         <input type="date" class="form-control mt-2" id="dataSentenca" name="data_sentenca" style="display:none;">
@@ -414,7 +434,9 @@ try {
  // Executa toggleSentenca ao carregar a página para exibir corretamente a data
  window.addEventListener("DOMContentLoaded", function() {
   toggleSentenca();
+  toggleOutraNatureza();
  });
+
 
  document.getElementById("municipio").addEventListener("change", function() {
   let municipioSelecionado = this.value;
@@ -476,11 +498,12 @@ try {
   if (natureza === "Inquérito Policial") {
    dataDenuncia.style.display = "none";
    dataRecebimento.style.display = "none";
-   labelDenunciado.innerText = "Flagrado/Indiciado";
+   labelDenunciado.innerText = "Flagrado/Indiciado/Investigado";
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML = `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecendo de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecimento de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Realização de ANPP"> Realização de ANPP<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento`;
    }
   } else if (natureza === "PIC") {
@@ -490,11 +513,13 @@ try {
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML = `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecendo de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecimento de Denúncia<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Realização de ANPP"> Realização de ANPP<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento`;
    }
   } else if (natureza === "NF") {
+   dataDenuncia.style.display = "none";
+   dataRecebimento.style.display = "none";
    labelDenunciado.innerText = "Noticiado";
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
@@ -511,7 +536,7 @@ try {
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML =
      `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecendo de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia"> Oferecimento de Denúncia<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento"> Arquivamento<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Outra Medida" onclick="toggleOutraMedida(this)"> Outra Medida
    <input type="text" name="especifique_outra_medida" class="form-control mt-2" style="display:none;" placeholder="Especifique...">`;
@@ -524,6 +549,28 @@ try {
   campo.style.display = checkbox.checked ? "block" : "none";
  }
  </script>
+ <script>
+ document.addEventListener("DOMContentLoaded", function() {
+  const naturezaSelect = document.getElementById("natureza");
+  const campoDataInstauracao = document.getElementById("campoDataInstauracao");
+
+  function atualizarCampoInstauracao() {
+   const natureza = naturezaSelect.value;
+   if (natureza === "Inquérito Policial" || natureza === "PIC" || natureza === "NF") {
+    campoDataInstauracao.style.display = "block";
+   } else {
+    campoDataInstauracao.style.display = "none";
+   }
+  }
+
+  // Atualiza ao carregar
+  atualizarCampoInstauracao();
+
+  // Atualiza quando mudar
+  naturezaSelect.addEventListener("change", atualizarCampoInstauracao);
+ });
+ </script>
+
 
 </body>
 

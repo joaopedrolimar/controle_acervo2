@@ -122,7 +122,7 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'dashboard.php') ? 'active' : '' ?>"
        href="dashboard.php"><i class="fas fa-home"></i> Início</a></li>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>"
-       href="listar_processos.php"><i class="fas fa-list"></i> Listar Processos</a></li>
+       href="listar_processos.php"><i class="fas fa-list"></i> <br> Listar Processos</a></li>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'cadastro_processo.php') ? 'active' : '' ?>"
        href="cadastro_processo.php"><i class="fas fa-plus"></i> Cadastrar Processos</a></li>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'listar_anpp.php') ? 'active' : '' ?>"
@@ -133,8 +133,17 @@ $totalPaginas = ceil($totalRegistros / $registrosPorPagina);
        href="gerenciar_usuarios.php"><i class="fas fa-users-cog"></i> Gerenciar Usuários</a></li>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'atos.php') ? 'active' : '' ?>" href="atos.php"><i
         class="fas fa-file-alt"></i> Atos</a></li>
+
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>"
-       href="log_atividades.php"><i class="fas fa-history"></i> Log de Atividades</a></li>
+       href="log_atividades.php"><i class="fas fa-history"></i> <br> Log de Atividades</a></li>
      <li class="nav-item"><a class="nav-link <?= ($pagina_atual == 'cadastro_basico.php') ? 'active' : '' ?>"
        href="cadastro_basico.php"><i class="fas fa-address-book"></i> Cadastro Básico</a></li>
 

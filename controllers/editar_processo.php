@@ -29,7 +29,7 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
                 'nome' => $bairro['nome']
             ];
         }
-        $stmt = $pdo->prepare("
+        $stmt = $pdo->prepare(" 
             SELECT processos.*, 
                    crimes.id AS crime_id, crimes.nome AS nome_crime,
                    municipios.id AS municipio_id, municipios.nome AS nome_municipio,
@@ -82,6 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
     $conversao_pic = in_array('Conversão em PIC', $opcoes) ? 1 : 0;
     $outra_medida = in_array('Outra Medida', $opcoes) ? 1 : 0;
     $especifique_outra_medida = $_POST['especifique_outra_medida'] ?? null;
+    $data_instauracao = $_POST['data_instauracao'] ?? null;
 
     $novo = [
         'numero' => trim($_POST['numero']),
@@ -115,8 +116,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
 
     try {
         $sql = "UPDATE processos SET 
-            numero = :numero, data_recebimento_denuncia = :data_recebimento, natureza = :natureza, outra_natureza = :outra_natureza,
-            data_denuncia = :data_denuncia, crime_id = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima,
+            numero = :numero, data_recebimento_denuncia = :data_recebimento, data_instauracao = :data_instauracao, natureza = :natureza, outra_natureza = :outra_natureza,
+            data_denuncia = :data_denuncia, crime_id 
+            = :crime_id, outro_crime = :outro_crime, denunciado = :denunciado, vitima = :vitima,
             local_municipio = :municipio_id, local_bairro = :bairro_id, sentenca = :sentenca,
             outra_sentenca = :outra_sentenca, data_sentenca = :data_sentenca, recursos = :recursos, status = :status,
             oferecendo_denuncia = :oferecendo_denuncia, arquivamento = :arquivamento, realizacao_anpp = :realizacao_anpp,
@@ -127,6 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
         $stmt->execute([
             ':numero' => $novo['numero'],
             ':data_recebimento' => $novo['data_recebimento_denuncia'],
+            ':data_instauracao' => $data_instauracao,
             ':natureza' => $novo['natureza'],
             ':outra_natureza' => $novo['outra_natureza'],
             ':data_denuncia' => $novo['data_denuncia'],
@@ -270,7 +273,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML =
      `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecendo de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecimento de Denúncia<br>
+      <input type="checkbox" name="opcoes_finalizado[]" value="Realização de ANPP" ${realizacao_anpp ? 'checked' : ''}> Realização de ANPP<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento`;
    }
   } else if (natureza === "PIC") {
@@ -281,11 +285,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML =
      `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecendo de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecimento de Denúncia<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Realização de ANPP" ${realizacao_anpp ? 'checked' : ''}> Realização de ANPP<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento`;
    }
   } else if (natureza === "NF") {
+   dataDenuncia.style.display = "none";
+   dataRecebimento.style.display = "none";
    labelDenunciado.innerText = "Noticiado";
    if (status === "Finalizado") {
     opcoesFinalizado.style.display = "block";
@@ -303,7 +309,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
     opcoesFinalizado.style.display = "block";
     opcoesFinalizado.innerHTML =
      `<label>Marque:</label><br>
-   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecendo de Denúncia<br>
+   <input type="checkbox" name="opcoes_finalizado[]" value="Oferecendo de Denúncia" ${oferecendo_denuncia ? 'checked' : ''}> Oferecimento de Denúncia<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Arquivamento" ${arquivamento ? 'checked' : ''}> Arquivamento<br>
    <input type="checkbox" name="opcoes_finalizado[]" value="Outra Medida" onclick="toggleOutraMedida(this)" ${outra_medida ? 'checked' : ''}> Outra Medida
    <input type="text" name="especifique_outra_medida" class="form-control mt-2" value="${especifique_outra_medida ?? ''}" style="${outra_medida ? '' : 'display:none;'}" placeholder="Especifique...">`;
@@ -349,6 +355,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
         <input type="date" class="form-control" name="data_recebimento"
          value="<?= $processo['data_recebimento_denuncia'] ?>">
        </div>
+
+       <!-- Data da Instauração -->
+       <?php
+        $naturezas_que_exigem_data_instauracao = ['Inquérito Policial', 'PIC', 'NF', 'Outra Natureza'];
+        $mostrar_data_instauracao = in_array($processo['natureza'], $naturezas_que_exigem_data_instauracao);
+        ?>
+       <div class="form-group" id="campo_data_instauracao"
+        style="<?= $mostrar_data_instauracao ? '' : 'display:none;' ?>">
+        <label for="data_instauracao">Data da Instauração</label>
+        <input type="date" class="form-control" name="data_instauracao" id="data_instauracao"
+         value="<?= $processo['data_instauracao'] ?>">
+       </div>
+
+
 
        <div class="mb-3">
         <label class="form-label">Natureza</label>
@@ -463,6 +483,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['atualizar']) || isset
    </div>
   </div>
  </div>
+
+ <script>
+ document.addEventListener("DOMContentLoaded", function() {
+  const naturezaSelect = document.getElementById("natureza");
+  const grupoInstauracao = document.getElementById("grupo_instauracao");
+
+  const opcoesComInstauracao = [
+   "Inquérito Policial",
+   "PIC",
+   "NF"
+  ];
+
+  function atualizarVisibilidadeInstauracao() {
+   const valorSelecionado = naturezaSelect.value.trim();
+   const deveExibir = opcoesComInstauracao.includes(valorSelecionado);
+   grupoInstauracao.style.display = deveExibir ? "block" : "none";
+  }
+
+  naturezaSelect.addEventListener("change", atualizarVisibilidadeInstauracao);
+  atualizarVisibilidadeInstauracao(); // chama uma vez ao carregar
+ });
+
+ document.getElementById('natureza').addEventListener('change', function() {
+  const campoDataInstauracao = document.getElementById('campo_data_instauracao');
+  const valor = this.value;
+  if (valor === 'Inquérito Policial' || valor === 'PIC' || valor === 'NF') {
+   campoDataInstauracao.style.display = 'block';
+  } else {
+   campoDataInstauracao.style.display = 'none';
+   document.getElementById('data_instauracao').value = '';
+  }
+ });
+ </script>
+
+
+
+
 </body>
 
 </html>

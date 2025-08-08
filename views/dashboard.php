@@ -138,7 +138,7 @@ foreach ($anpps_status as $row) {
      <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
-       <i class="fas fa-list"></i> Listar Processos
+       <i class="fas fa-list"></i> <br>Listar Processos
       </a>
      </li>
      <?php endif; ?>
@@ -185,10 +185,19 @@ foreach ($anpps_status as $row) {
      </li>
      <?php endif; ?>
 
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
+
      <?php if ($perfil === 'administrador'): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-       <i class="fas fa-history"></i> Log de Atividades
+       <i class="fas fa-history"></i> <br> Log de Atividades
       </a>
      </li>
      <?php endif; ?>
