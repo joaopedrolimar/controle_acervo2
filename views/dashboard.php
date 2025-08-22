@@ -62,6 +62,33 @@ foreach ($anpps_status as $row) {
     $anppValues[] = (int)$row['total'];
 }
 
+$query = "
+    SELECT COUNT(*) as total_alertas
+    FROM processos
+    WHERE data_recebimento_denuncia IS NULL
+      AND DATEDIFF(CURDATE(), data_denuncia) > 30
+";
+
+$stmt = $pdo->query($query);
+$alerta = $stmt->fetchColumn();
+
+$alertas_rows = [];
+if ((int)$alerta > 0) {
+    $sqlAlertas = "
+        SELECT id, numero, data_denuncia,
+               DATEDIFF(CURDATE(), data_denuncia) AS dias
+        FROM processos
+        WHERE data_recebimento_denuncia IS NULL
+          AND data_denuncia IS NOT NULL
+          AND data_denuncia <> '0000-00-00'
+          AND DATEDIFF(CURDATE(), data_denuncia) >= 30
+        ORDER BY data_denuncia ASC
+        LIMIT 200
+    ";
+    $alertas_rows = $pdo->query($sqlAlertas)->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 
 ?>
 
@@ -138,7 +165,7 @@ foreach ($anpps_status as $row) {
      <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
-       <i class="fas fa-list"></i> Listar Processos
+       <i class="fas fa-list"></i> <br>Listar Processos
       </a>
      </li>
      <?php endif; ?>
@@ -185,10 +212,19 @@ foreach ($anpps_status as $row) {
      </li>
      <?php endif; ?>
 
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
+
      <?php if ($perfil === 'administrador'): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-       <i class="fas fa-history"></i> Log de Atividades
+       <i class="fas fa-history"></i> <br> Log de Atividades
       </a>
      </li>
      <?php endif; ?>
@@ -231,7 +267,66 @@ foreach ($anpps_status as $row) {
 
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-4">
 
+<?php if ($alerta > 0): ?>
+  <div class="alert alert-danger text-center" style="font-size:16px; cursor:pointer"
+       data-bs-toggle="modal" data-bs-target="#modalAlertas">
+    ⚠️ Existem <strong><?= (int)$alerta ?></strong> processos com mais de 30 dias sem recebimento da denúncia!
+    <br><u>Clique para ver os IDs</u>
+  </div>
+<?php endif; ?>
 
+
+<?php if (!empty($alertas_rows)): ?>
+<div class="modal fade" id="modalAlertas" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Processos com 30+ dias sem recebimento</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex gap-2 mb-3">
+          <a class="btn btn-outline-danger btn-sm" href="listar_processos.php?alerta_30=1">
+            Ver na lista filtrada
+          </a>
+          <button class="btn btn-outline-secondary btn-sm" id="btnCopiarIds">Copiar IDs</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr>
+                <th style="width:80px">ID</th>
+                <th>Número</th>
+                <th style="width:140px">Denúncia</th>
+                <th style="width:120px">Atraso</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($alertas_rows as $row): ?>
+              <tr>
+                <td><?= (int)$row['id'] ?></td>
+                <td><?= htmlspecialchars($row['numero'] ?? '') ?></td>
+                <td><?= $row['data_denuncia'] ? date('d/m/Y', strtotime($row['data_denuncia'])) : '—' ?></td>
+                <td><span class="badge bg-danger"><?= (int)$row['dias'] ?>d</span></td>
+              </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Campo escondido para copiar IDs -->
+        <textarea id="txtIds" class="visually-hidden"><?=
+          implode(',', array_map(fn($r)=>$r['id'], $alertas_rows))
+        ?></textarea>
+      </div>
+      <div class="modal-footer">
+        <small class="text-muted">Mostrando até 200 registros mais antigos. Para ver todos, use “Ver na lista”.</small>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 
 
    <div class="col">
@@ -435,6 +530,23 @@ foreach ($anpps_status as $row) {
  </script>
 
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('btnCopiarIds');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      const txt = document.getElementById('txtIds').value;
+      try {
+        await navigator.clipboard.writeText(txt);
+        btn.textContent = 'Copiado!';
+        setTimeout(()=>btn.textContent='Copiar IDs', 1500);
+      } catch(e) {
+        alert('Não foi possível copiar. Selecione e copie manualmente:\n' + txt);
+      }
+    });
+  }
+});
+</script>
 
 
 </body>

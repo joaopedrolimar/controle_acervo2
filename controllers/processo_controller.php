@@ -1,3 +1,4 @@
+<!--/controllers/processo_controller.php"-->
 <?php
 session_start();
 require_once "../config/conexao.php";
@@ -9,9 +10,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['cadastrar']) || isset
     $numero = trim($_POST['numero']);
     $data_recebimento = $_POST['data_recebimento'] ?? null;
 
+
     $natureza = trim($_POST['natureza']);
+    $data_instauracao = $_POST['data_instauracao'] ?? null;
+
     $outra_natureza = $_POST['outra_natureza'] ?? null;
-    $data_denuncia = $_POST['data_denuncia'];
+    $data_denuncia = $_POST['data_denuncia'] ?? null;
+
     $crime_id = intval($_POST['crime']);
     $denunciado = trim($_POST['denunciado']);
 
@@ -99,21 +104,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['cadastrar']) || isset
 
         // INSERE no banco
 $sql = "INSERT INTO processos 
-    (numero, data_recebimento_denuncia, natureza, outra_natureza, data_denuncia, crime_id, 
+    (numero, data_recebimento_denuncia, natureza, data_instauracao, outra_natureza, data_denuncia, crime_id, 
      denunciado, vitima, local_municipio, local_bairro, sentenca, outra_sentenca, 
      data_sentenca, recursos, status, usuario_id, 
      oferecendo_denuncia, arquivamento, realizacao_anpp, requisicao_inquerito, conversao_pic, outra_medida, especifique_outra_medida, data_status_ativo)
+
+ 
     VALUES 
-    (:numero, :data_recebimento, :natureza, :outra_natureza, :data_denuncia, :crime_id, 
+    (:numero, :data_recebimento, :natureza, :data_instauracao, :outra_natureza, :data_denuncia, :crime_id, 
      :denunciado, :vitima, :local_municipio, :local_bairro, :sentenca, :outra_sentenca, 
      :data_sentenca, :recursos, :status, :usuario_id,
-     :oferecendo_denuncia, :arquivamento, :realizacao_anpp, :requisicao_inquerito, :conversao_pic, :outra_medida, :especifique_outra_medida, :data_status_ativo)";
+     :oferecendo_denuncia, :arquivamento, :realizacao_anpp, :requisicao_inquerito, :conversao_pic, :outra_medida, :especifique_outra_medida, :data_status_ativo)
+";
 
 
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':numero', $numero, PDO::PARAM_STR);
         $stmt->bindParam(':data_recebimento', $data_recebimento, PDO::PARAM_STR);
         $stmt->bindParam(':natureza', $natureza, PDO::PARAM_STR);
+        $stmt->bindParam(':data_instauracao', $data_instauracao, PDO::PARAM_STR);
+
         $stmt->bindParam(':outra_natureza', $outra_natureza, PDO::PARAM_STR);
         $stmt->bindParam(':data_denuncia', $data_denuncia, PDO::PARAM_STR);
         $stmt->bindParam(':crime_id', $crime_id, PDO::PARAM_INT);
@@ -145,6 +155,8 @@ $stmt->bindParam(':data_status_ativo', $data_status_ativo, PDO::PARAM_STR);
             registrar_log($usuario_id, "Cadastrou um novo processo", "processos", $registro_id, null, json_encode([
                 'numero' => $numero, 
                 'natureza' => $natureza,
+                'data_instauracao' => $data_instauracao,
+
                 'outra_natureza' => $outra_natureza,
                 'data_denuncia' => $data_denuncia, 
                 'crime_id' => $crime_id, 

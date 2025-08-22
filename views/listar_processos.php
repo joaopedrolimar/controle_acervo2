@@ -245,6 +245,10 @@ $sql .= " LIMIT $offset, $registros_por_pagina";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -333,7 +337,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador_consulta'])): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'listar_processos.php') ? 'active' : '' ?>" href="listar_processos.php">
-       <i class="fas fa-list"></i> Listar Processos
+       <i class="fas fa-list"></i> <br> Listar Processos
       </a>
      </li>
      <?php endif; ?>
@@ -380,10 +384,19 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      </li>
      <?php endif; ?>
 
+     <!-- Mural de Atualizações: todos -->
+     <?php if (in_array($perfil, ['administrador', 'consultor', 'cadastrador', 'cadastrador_consulta'])): ?>
+     <li class="nav-item">
+      <a class="nav-link <?= ($pagina_atual == 'mural.php') ? 'active' : '' ?>" href="mural.php">
+       <i class="fas fa-bullhorn"></i> <br> Mural de Atualizações
+      </a>
+     </li>
+     <?php endif; ?>
+
      <?php if ($perfil === 'administrador'): ?>
      <li class="nav-item">
       <a class="nav-link <?= ($pagina_atual == 'log_atividades.php') ? 'active' : '' ?>" href="log_atividades.php">
-       <i class="fas fa-history"></i> Log de Atividades
+       <i class="fas fa-history"></i> <br> Log de Atividades
       </a>
      </li>
      <?php endif; ?>
@@ -492,6 +505,32 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </thead>
     <tbody>
      <?php foreach ($processos as $p): ?>
+
+
+
+<?php
+  // ---- Cálculo do alerta por linha ----
+  $em_alerta = false;
+  $dias_sem_receber = null;
+  $ciclos_30d = 0;
+
+  $tem_denuncia    = !empty($p['data_denuncia']) && $p['data_denuncia'] !== '0000-00-00';
+  $tem_recebimento = !empty($p['data_recebimento_denuncia']) && $p['data_recebimento_denuncia'] !== '0000-00-00';
+
+  if ($tem_denuncia && !$tem_recebimento) {
+      try {
+          $d_denuncia = new DateTime($p['data_denuncia']);
+          $hoje = new DateTime();
+          $dias_sem_receber = $hoje->diff($d_denuncia)->days;
+          $em_alerta = ($dias_sem_receber >= 30);
+          $ciclos_30d = intdiv($dias_sem_receber, 30);
+      } catch (Exception $e) {
+          $em_alerta = false;
+      }
+  }
+?>
+
+
      <?php
      // Novo label para tipo do processo
      $label = match($p['natureza']) {
@@ -503,7 +542,7 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
      };
      // Monta array de decisões finais
      $decisoes = [];
-     if ($p['oferecendo_denuncia']) $decisoes[] = 'Oferecendo de Denúncia';
+     if ($p['oferecendo_denuncia']) $decisoes[] = 'Oferecimento de Denúncia';
      if ($p['arquivamento']) $decisoes[] = 'Arquivamento';
      if ($p['realizacao_anpp']) $decisoes[] = 'Realização ANPP';
      if ($p['requisicao_inquerito']) $decisoes[] = 'Requisição Inquérito';
@@ -515,9 +554,14 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <td><?= htmlspecialchars($p['numero']) ?></td>
       <td><?= htmlspecialchars($p['natureza']) ?></td>
 
-      <td>
-       <?= ($p['data_denuncia'] && $p['data_denuncia']!='0000-00-00') ? date('d/m/Y', strtotime($p['data_denuncia'])) : 'Não informado' ?>
-      </td>
+<td>
+  <?= ($p['data_denuncia'] && $p['data_denuncia']!='0000-00-00') 
+        ? date('d/m/Y', strtotime($p['data_denuncia'])) 
+        : 'Não informado' ?>
+  <?php if ($em_alerta): ?>
+    <br><span class="badge bg-danger">Alerta <?= $dias_sem_receber ?>d (<?= $ciclos_30d*30 ?>+)</span>
+  <?php endif; ?>
+</td>
       <td>
        <?= ($p['data_recebimento_denuncia'] && $p['data_recebimento_denuncia']!='0000-00-00') ? date('d/m/Y', strtotime($p['data_recebimento_denuncia'])) : 'Não informado' ?>
       </td>
@@ -554,6 +598,9 @@ $processos = $stmt->fetchAll(PDO::FETCH_ASSOC);
        </div>
       </td>
      </tr>
+
+
+
 
      <!-- Calcula tempo de vida  do Processo -->
      <?php
@@ -650,9 +697,9 @@ if (!empty($p['status']) && $p['status'] === 'Ativo' && !empty($p['data_denuncia
  </div>
 
  <!-- Paginação -->
-<nav>
- <ul class="pagination justify-content-center mt-4">
-  <?php
+ <nav>
+  <ul class="pagination justify-content-center mt-4">
+   <?php
   $max_links = 2; // Quantas páginas antes e depois da atual
   $start = max(1, $paginaAtual - $max_links);
   $end = min($total_paginas, $paginaAtual + $max_links);
@@ -690,8 +737,8 @@ if ($end < $total_paginas) {
 }
 
   ?>
- </ul>
-</nav>
+  </ul>
+ </nav>
 
 
  <div class="text-center mt-3 mb-5 text-muted">
